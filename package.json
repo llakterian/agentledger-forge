@@ -1,0 +1,28 @@
+{
+  "name": "agentledger-forge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AgentLedger — verifiable identity and a tamper-evident attestation trail for AI agents acting in Atlassian products.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "esbuild ui/src/main.js --bundle --format=iife --target=es2020 --outfile=static/panel/app.js --minify",
+    "build:dev": "esbuild ui/src/main.js --bundle --format=iife --target=es2020 --outfile=static/panel/app.js --sourcemap",
+    "test": "node --test \"test/*.test.js\"",
+    "validate": "node tools/validate-manifest.mjs",
+    "check": "npm run build && npm test && npm run validate",
+    "check:live": "node tools/check-agent.mjs",
+    "forge:deploy": "forge deploy --environment development",
+    "forge:install": "forge install --non-interactive",
+    "forge:tunnel": "forge tunnel"
+  },
+  "dependencies": {
+    "@forge/api": "^6.0.0",
+    "@forge/bridge": "^7.4.0",
+    "@forge/kvs": "^1.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "js-yaml": "^5.5.0"
+  }
+}

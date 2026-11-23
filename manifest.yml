@@ -1,0 +1,235 @@
+modules:
+  # ── Issue panel ──────────────────────────────────────────────────────────────
+  # Custom UI (static resource). The panel asks the resolver for the issue it
+  # is attached to, so the trail is always scoped to the right work item.
+  jira:issuePanel:
+    - key: agentledger-panel
+      title: AgentLedger
+      resource: agentledger-resource
+      resolver:
+        function: resolver
+      icon: resource:agentledger-resource;icons/agent.svg
+      viewportSize: small
+
+  # ── Rovo: a configurable agent + an MCP server exposing the same tools ──────
+  rovo:agent:
+    - key: agentledger-auditor
+      name: AgentLedger Auditor
+      description: >
+        Checks an AI agent's identity against a registry before it acts on an
+        issue, shows the context Teamwork Graph holds for that issue, and
+        records what happened in a tamper-evident trail.
+      icon: resource:agentledger-resource;icons/agent.svg
+      prompt: resource:agentledger-resource;prompts/auditor.txt
+      actions:
+        - agentledger-policy
+        - agentledger-verify
+        - agentledger-context
+        - agentledger-trail
+        - agentledger-record
+      skills:
+        - agent-attestation
+      conversationStarters:
+        - Check the agent identity for this issue
+        - What context does Teamwork Graph hold for this issue?
+        - Show the attestation trail for this issue
+        - Which actions need a human approval?
+
+  rovo:mcp:
+    - key: agentledger-mcp
+      name: AgentLedger MCP
+      tools:
+        - agentledger-policy
+        - agentledger-verify
+        - agentledger-context
+        - agentledger-trail
+        - agentledger-record
+
+  # ── A reusable skill so any Rovo agent can follow the same rules ────────────
+  rovo:skill:
+    - key: agent-attestation
+      source:
+        dir: skills/agent-attestation
+      dependencies:
+        tools:
+          - agentledger-policy
+          - agentledger-verify
+          - agentledger-context
+          - agentledger-trail
+          - agentledger-record
+
+  # ── Actions (exposed to Rovo agents and to third-party MCP clients) ──────────
+  action:
+    - key: agentledger-policy
+      name: AgentLedger action policy
+      function: agentledger-tool
+      actionVerb: GET
+      description: >
+        Returns which actions an AI agent may perform on its own and which ones
+        are human-gated (approve, refund, close). Call this before acting.
+      inputs:
+        operation:
+          title: Operation
+          type: string
+          required: true
+          description: "Use 'policy' to list the policy table."
+    - key: agentledger-verify
+      name: Verify agent identity
+      function: agentledger-tool
+      actionVerb: GET
+      description: >
+        Verifies an AI agent's identity against the Concordium Agent Registry
+        (CIS-8004) or an ERC-8004 identity registry and returns every check that
+        passed or failed. Never act on an agent whose identity did not verify.
+      inputs:
+        operation:
+          title: Operation
+          type: string
+          required: true
+          description: "Use 'verify'."
+        agentRef:
+          title: Agent reference
+          type: string
+          required: true
+          description: >
+            CIS-8004 token address (for example JyP9X278CKWoNLAFg5kVr) or the
+            numeric agent id for an ERC-8004 registry.
+        source:
+          title: Registry
+          type: string
+          required: false
+          description: "auto | concordium | erc8004. Defaults to auto."
+    - key: agentledger-trail
+      name: Read the attestation trail
+      function: agentledger-tool
+      actionVerb: GET
+      description: >
+        Returns the hash-chained attestation trail for an issue together with
+        the result of verifying that chain.
+      inputs:
+        operation:
+          title: Operation
+          type: string
+          required: true
+          description: "Use 'trail'."
+        issueKey:
+          title: Issue key
+          type: string
+          required: true
+          description: "The Jira issue key, for example SAFE-42."
+    - key: agentledger-record
+      name: Record an agent action
+      function: agentledger-tool
+      actionVerb: UPDATE
+      description: >
+        Records an action an AI agent took on an issue. The identity is verified
+        first and the action is evaluated against the policy; the attestation is
+        appended to the issue's hash-chained trail. Human-gated actions are
+        recorded as 'flagged' until a human approves them.
+      inputs:
+        operation:
+          title: Operation
+          type: string
+          required: true
+          description: "Use 'record'."
+        issueKey:
+          title: Issue key
+          type: string
+          required: true
+          description: "The Jira issue key, for example SAFE-42."
+        actionKind:
+          title: Action
+          type: string
+          required: true
+          description: >
+            One of: comment, triage, transition, assign, create, approve,
+            refund, close.
+        agentRef:
+          title: Agent reference
+          type: string
+          required: true
+          description: "The agent's registry reference (CIS-8004 token or agent id)."
+        humanApproved:
+          title: Human approved
+          type: boolean
+          required: false
+          description: "True only when a human reviewer already approved this action."
+
+    - key: agentledger-context
+      name: Work item context
+      function: agentledger-tool
+      actionVerb: GET
+      description: >
+        Returns what Atlassian's Teamwork Graph knows about a work item: the
+        issue itself, the goals linked to it, recent comments and linked pull
+        requests. Use this to give an agent the context it needs before it acts.
+      inputs:
+        operation:
+          title: Operation
+          type: string
+          required: true
+          description: "Use 'context'."
+        issueKey:
+          title: Issue key
+          type: string
+          required: true
+          description: "The Jira issue key, for example SAFE-42."
+        since:
+          title: Comment window
+          type: string
+          required: false
+          description: "ISO-8601 duration for recent comments, for example P30D. Defaults to P30D."
+
+  # ── Functions ───────────────────────────────────────────────────────────────
+  function:
+    - key: resolver
+      handler: index.resolver
+    - key: get-panel
+      handler: index.getPanel
+    - key: verify-agent
+      handler: index.verifyAgentHandler
+    - key: record-action
+      handler: index.recordAction
+    - key: approve-action
+      handler: index.approveAction
+    - key: get-trail
+      handler: index.getTrail
+    - key: get-issue-context
+      handler: index.getIssueContext
+    - key: agentledger-tool
+      handler: index.agentLedgerTool
+
+resources:
+  - key: agentledger-resource
+    path: static/panel
+
+permissions:
+  scopes:
+    - read:jira-work
+    - write:jira-work
+    - read:me
+    - storage:app
+    # Teamwork Graph — the connected context behind a work item
+    - read:graph:issue:jira
+    - read:graph:goal:atlassian
+    - read:graph:issue-comment:jira
+    - read:graph:user:atlassian
+    - read:graph:pull-request:external
+  external:
+    fetch:
+      backend:
+        - 'agent-registry-mcp.concordium.com'
+        - 'sepolia.base.org'
+        - 'botin-7ud.pages.dev'
+
+app:
+  id: ari:cloud:ecosystem::app/REPLACE_WITH_APP_ID
+  name: AgentLedger
+  runtime:
+    name: nodejs24.x
+  editor:
+    name: AgentLedger for Jira
+  environment:
+    variables:
+      - key: AGENT_DEFAULT_REF
+        default: 'JyP9X278CKWoNLAFg5kVr'
