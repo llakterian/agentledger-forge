@@ -6,11 +6,31 @@
 // MCP tools and those modules.
 
 import api, { fetch } from '@forge/api';
-import kvs from '@forge/kvs';
+import * as kvsModule from '@forge/kvs';
 import { verifyAgent } from './verifiers.js';
 import { evaluateAction, policyTable, ACTIONS } from './policy.js';
 import { appendAttestation, summarize, verifyChain, GENESIS_HASH } from './attestations.js';
 import { buildIssueAri, collectIssueContext, renderContext } from './context.js';
+import * as resolverArgs from './resolver.js';
+
+// @forge/kvs is a CommonJS package. Depending on how the bundler wires it up,
+// the default import can land on the whole `module.exports` namespace instead
+// of the client itself, which fails later as "kvs.get is not a function".
+// Resolve it once, here, and fail loudly if none of the shapes match.
+const kvs = (() => {
+  const candidates = [
+    kvsModule,
+    kvsModule?.default,
+    kvsModule?.kvs,
+    kvsModule?.default?.kvs,
+  ];
+  for (const candidate of candidates) {
+    if (candidate && typeof candidate.get === 'function' && typeof candidate.set === 'function') {
+      return candidate;
+    }
+  }
+  throw new Error('the @forge/kvs client could not be resolved (no get/set on any export shape)');
+})();
 
 const STORE_PREFIX = 'agentledger.trail.';
 const CLOUD_ID_KEY = 'agentledger.cloudId';
@@ -23,6 +43,17 @@ const DEFAULT_AGENT_REF = process.env.AGENT_DEFAULT_REF || 'JyP9X278CKWoNLAFg5kV
 // The Forge runtime does not expose a global fetch: external requests have to
 // go through the @forge/api client, which enforces the manifest egress rules.
 const forgeFetch = (...args) => fetch(...args);
+
+/**
+ * Normalise a resolver's arguments.
+ *
+ * Forge calls a resolver with a single object — `{ context, call }` — where
+ * `call.payload` holds what the caller sent and `call.functionKey` names the
+ * function. A module resolver (the one a jira:issuePanel module points at)
+ * instead receives the module payload directly, with the context as the second
+ * argument. Both shapes are accepted so a handler can be called either way.
+ */
+const { unpack, issueKeyFrom } = resolverArgs;
 
 async function readChain(issueKey) {
   const raw = await kvs.get(STORE_PREFIX + issueKey);
@@ -57,11 +88,12 @@ async function issueSummary(issueKey) {
 }
 
 /** Resolver for the jira:issuePanel module — supplies the panel with context. */
-export async function resolver(payload, context) {
-  // The issue panel's bridge dispatches every `invoke` call to this resolver
-  // regardless of the function key, so the panel routes its operations here
-  // with an explicit `op` and we dispatch by hand.
-  const op = payload && payload.op;
+export async function resolver(first, second) {
+  // The panel routes every operation through this resolver with an explicit
+  // `op`, because the issue panel's bridge delivers each `invoke` to the
+  // module resolver; we dispatch by hand.
+  const { payload, context } = unpack(first, second);
+  const op = payload.op;
   if (op === 'verify-agent') return verifyAgentHandler(payload, context);
   if (op === 'get-panel') return getPanel(payload, context);
   if (op === 'check-policy') return checkPolicy(payload, context);
@@ -71,15 +103,8 @@ export async function resolver(payload, context) {
   if (op === 'get-issue-context') return getIssueContext(payload, context);
   if (op) throw new Error(`unknown op "${op}"`);
 
-  // The module resolver is called with the panel's extension payload, while
-  // `invoke` calls arrive with whatever the panel sent — and may be empty.
-  // Pull the issue key out of every shape we have seen it in.
-  const issueKey =
-    payload?.issue?.key ||
-    payload?.extension?.issue?.key ||
-    payload?.key ||
-    null;
-  const cloudId = context?.cloudId || payload?.cloudId || payload?.context?.cloudId || null;
+  const issueKey = issueKeyFrom(payload, context);
+  const cloudId = context?.cloudId || payload?.cloudId || null;
   // The panel resolver is the only place where Forge hands us the site's cloud
   // id for free, so remember it: the Teamwork Graph needs it to build ARIs.
   if (cloudId) {
@@ -87,10 +112,10 @@ export async function resolver(payload, context) {
   }
   return {
     issueKey,
-    issueId: payload.issue?.id || null,
+    issueId: payload?.issue?.id || context?.extension?.issue?.id || null,
     cloudId,
     defaultAgentRef: DEFAULT_AGENT_REF,
-    dispatcherVersion: 2,
+    dispatcherVersion: 3,
     echoPayload: payload,
     echoContextKeys: context ? Object.keys(context) : null,
   };
@@ -145,7 +170,8 @@ async function resolveIssueAri(issueKey, cloudId) {
  * Collect the Teamwork Graph context for an issue: the work item, the goals
  * linked to it, recent comments and linked pull requests.
  */
-export async function getIssueContext(payload) {
+export async function getIssueContext(first, second) {
+  const { payload } = unpack(first, second);
   const issueKey = payload.issueKey;
   if (!issueKey) throw new Error('issueKey is required');
   const cloudId = await resolveCloudId(issueKey, payload.cloudId);
@@ -159,7 +185,8 @@ export async function getIssueContext(payload) {
 }
 
 /** Everything the issue panel renders. */
-export async function getPanel(payload) {
+export async function getPanel(first, second) {
+  const { payload } = unpack(first, second);
   const issueKey = payload.issueKey;
   const chain = await readChain(issueKey);
   const issue = await issueSummary(issueKey);
@@ -172,7 +199,8 @@ export async function getPanel(payload) {
 }
 
 /** Verify an agent reference against a registry. */
-export async function verifyAgentHandler(payload) {
+export async function verifyAgentHandler(first, second) {
+  const { payload } = unpack(first, second);
   const ref = payload.agentRef || payload.ref || payload.agentId;
   const report = await verifyAgent(ref, { fetchImpl: forgeFetch, source: payload.source || 'auto' });
   return {
@@ -182,7 +210,8 @@ export async function verifyAgentHandler(payload) {
 }
 
 /** Evaluate the policy for an action without recording anything (dry run). */
-export async function checkPolicy(payload) {
+export async function checkPolicy(first, second) {
+  const { payload } = unpack(first, second);
   const identity = payload.identity || null;
   const decision = evaluateAction({
     action: payload.action,
@@ -199,7 +228,8 @@ export async function checkPolicy(payload) {
  * identity verified *and* the policy allows it; otherwise it is recorded as
  * `denied` or `flagged` so the trail shows the attempt.
  */
-export async function recordAction(payload) {
+export async function recordAction(first, second) {
+  const { payload } = unpack(first, second);
   const issueKey = payload.issueKey;
   if (!issueKey) throw new Error('issueKey is required');
   const action = payload.action;
@@ -241,7 +271,8 @@ export async function recordAction(payload) {
 }
 
 /** A human approves (or denies) a flagged action. */
-export async function approveAction(payload) {
+export async function approveAction(first, second) {
+  const { payload } = unpack(first, second);
   const issueKey = payload.issueKey;
   const approved = payload.approved !== false;
   const chain = await readChain(issueKey);
@@ -262,7 +293,8 @@ export async function approveAction(payload) {
 }
 
 /** Read-only trail + chain verification. */
-export async function getTrail(payload) {
+export async function getTrail(first, second) {
+  const { payload } = unpack(first, second);
   const chain = await readChain(payload.issueKey);
   return { trail: chain, summary: summarize(chain), verification: verifyChain(chain) };
 }
@@ -272,7 +304,8 @@ export async function getTrail(payload) {
  * The tool is intentionally explicit — an LLM should not have to guess which
  * of these steps to skip.
  */
-export async function agentLedgerTool(payload) {
+export async function agentLedgerTool(first, second) {
+  const { payload } = unpack(first, second);
   const action = payload.action;
   if (action === 'policy') {
     return { policy: policyTable(), note: 'Actions marked requiresHuman need a human approval attestation.' };
