@@ -106,7 +106,8 @@ Target 3:30, hard limit 5:00. Upload to YouTube as **public**.
 | --- | --- |
 | Forge rejects the manifest on a Preview module | `rovo:mcp`, `rovo:skill` and TWG are Preview but fully supported; the fallback is to drop `rovo:skill` first (it is the least load-bearing) |
 | Teamwork Graph scopes not granted by the admin | The app degrades to "graph queries unavailable" and names the scope; everything else works |
-| No linked goal on the demo issue | Link a goal to the demo issue first, or demo on a work item in a project that already has goals |
+| The demo issue has no linked goal | Link a goal to the demo issue before recording, or the "Work item context" beat shows "none found in the graph" |
+| The category choice is questioned | The rules allow the sponsor to reassign a project between categories; Software Teams is the natural fallback and is noted in the submission |
 | The demo video runs long | The script is timed; the longest beat (0:20–0:55) is a single panel interaction |
 | Node version too old for Forge CLI 15+ | CLI 14 is installed and works with Node 22.22.1; `npm install -g @forge/cli@14` |
 | Devpost form validation is strict about the video | Upload to YouTube first, set the video to public, then paste the URL |
@@ -115,7 +116,9 @@ Target 3:30, hard limit 5:00. Upload to YouTube as **public**.
 
 | When | What |
 | --- | --- |
-| 18 Dec 2026 | Target submission (internal deadline) |
-| 22 Dec 2026, 12:00 PM PT / 20:00 UTC | Official deadline |
+| 18 Dec 2026, 06:00–08:00 UTC (09:00–11:00 EAT) | Target submission (internal deadline) |
+| 22 Dec 2026, 18:00–20:00 UTC (21:00–23:00 EAT) | Official deadline — 12:00 PM PT / 20:00 UTC / 23:00 EAT |
 
-Both are on `lakterian9@gmail.com` (calendar *Lakterian*).
+Both are on `lakterian9@gmail.com` (calendar *Lakterian*), each with a 2-hour
+notification. Cron reminders fire on Dec 17 (pre-stage), Dec 18 (target submit)
+and Dec 21 (deadline eve).

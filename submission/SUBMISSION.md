@@ -18,13 +18,50 @@ human-gated action policy, and appended to a hash-chained attestation trail.
 
 **Apps for Specialized Industries**
 
-Rationale: the problem AgentLedger solves is not a general Jira productivity
-problem — it is the accountability problem in domains where an AI agent's
-action carries regulatory or financial consequence (payments, refunds, service
-approvals, healthcare/insurance workflows). BotIn, the registry behind the
-demo, is a professional network and identity registry for AI agents with
-USDT subscriptions and an on-chain reputation score; the specialized-industry
-framing is the honest one.
+The rules ask for one category per submission (and allow the sponsor to
+reassign). The honest case for this one:
+
+- The users this app exists for are **regulated-industry teams that let AI
+  agents touch money and approvals** — fintech, healthtech, insurance, legal
+  ops. The action vocabulary in the policy is that world: `approve`,
+  `refund`, `close`, `assign`, `transition`.
+- The demo runs on a JSM-shaped scenario: an agent asked to **trigger a refund
+  / close a request**, which the policy refuses and flags for a human, with
+  the identity evidence and the hash-chained trail shown alongside.
+- The registry behind it, BotIn, is itself a financial-grade agent identity
+  layer — on-chain ownership, USDT subscription payments, a reputation score —
+  built for professional agents rather than for consumer chat.
+
+*Fallback:* if the judges read the category differently, **Apps for Software
+Teams** is the natural reassignment (the panel is a Jira issue panel and the
+Teamwork Graph context feeds issue triage). The rules explicitly let the
+sponsor move an entry between categories, so the entry is not harmed by this
+choice.
+
+There is also a **Participation Prize** — an Atlassian Developer Swag Pack,
+first-come first-served to every entrant with an eligible submission — so the
+entry has a floor even if it places nowhere.
+
+## Schedule (from the official rules)
+
+| | |
+|---|---|
+| Registration + submission period | 27 Oct 2026, 9:00 am PT → **22 Dec 2026, 12:00 pm PT** (20:00 UTC / 23:00 EAT) |
+| Judging period | 5 Jan 2027, 1:00 pm PT → 3 Feb 2027, 5:00 pm PT |
+| Winners announced | on or around 15 Feb 2027, 9:00 am PT |
+
+## Prize structure (from the official rules)
+
+| Prize | Amount | Count |
+|---|---|---|
+| 1st place (per category) | $15,000 + 2 Team 2027 tickets | 3 |
+| 2nd place (per category) | $8,000 | 3 |
+| 3rd place (per category) | $5,000 | 3 |
+| Best Agents — Rovo/Assignable agents | $1,500 | 6 |
+| Best app with Atlassian MCP | $1,500 | 6 |
+| Best apps with Teamwork Graph integration | $1,500 | 6 |
+| Best Marketplace published app | $1,500 | 6 |
+| Participation prize | Atlassian Developer Swag Pack | first-come, first-served |
 
 ## Bonus prizes entered
 
@@ -43,6 +80,11 @@ framing is the honest one.
 
 **Not entered:** Best Marketplace published app (publishing to the Marketplace
 was out of scope for the time available).
+
+**Eligibility check:** Kenya is not on the excluded list (Brazil, Quebec,
+Russia, Belarus, Crimea, Cuba, Iran, North Korea, Syria, Sudan, Myanmar, plus
+OFAC-sanctioned jurisdictions), so the entry is eligible as an individual of
+major age. Entered as a **solo** participant.
 
 ---
 
@@ -192,7 +234,9 @@ See `PLAN.md` for the full checklist.
 - [ ] `forge install` → generate the judge installation link
 - [ ] Confirm the Teamwork Graph scopes are granted; record a real graph
       response for the demo
+- [ ] Link a goal to the demo issue so the "Work item context" beat shows a
+      goal, not an empty result
 - [ ] Record the demo video (< 5 min) and upload it to YouTube as **public**
 - [ ] Fill the Devpost submission form (category, two/three bonus prizes,
       installation link, YouTube URL, explanation)
-- [ ] Confirm Kenya is not on the excluded countries/territories list
+- [x] Confirm Kenya is not on the excluded countries/territories list
