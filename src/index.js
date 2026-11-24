@@ -15,6 +15,11 @@ import { buildIssueAri, collectIssueContext, renderContext } from './context.js'
 const STORE_PREFIX = 'agentledger.trail.';
 const CLOUD_ID_KEY = 'agentledger.cloudId';
 
+// The agent reference the panel pre-fills so a demo (or a reviewer) can verify
+// identity with one click. It can be overridden per environment with the
+// AGENT_DEFAULT_REF variable; the fallback is BotIn's own registry entry.
+const DEFAULT_AGENT_REF = process.env.AGENT_DEFAULT_REF || 'JyP9X278CKWoNLAFg5kVr';
+
 // The Forge runtime does not expose a global fetch: external requests have to
 // go through the @forge/api client, which enforces the manifest egress rules.
 const forgeFetch = (...args) => fetch(...args);
@@ -64,6 +69,7 @@ export async function resolver(payload, context) {
     issueKey,
     issueId: payload.issue?.id || null,
     cloudId,
+    defaultAgentRef: DEFAULT_AGENT_REF,
   };
 }
 

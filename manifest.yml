@@ -122,10 +122,10 @@ modules:
       function: agentledger-tool
       actionVerb: UPDATE
       description: >
-        Records an action an AI agent took on an issue. The identity is verified
-        first and the action is evaluated against the policy; the attestation is
-        appended to the issue's hash-chained trail. Human-gated actions are
-        recorded as 'flagged' until a human approves them.
+        Records an action an AI agent took on an issue: verifies the identity,
+        checks the action against the policy, then appends an attestation to the
+        issue's hash-chained trail. Human-gated actions are flagged until a
+        human approves them.
       inputs:
         operation:
           title: Operation
@@ -233,13 +233,9 @@ permissions:
         - '*.atlassian.net'
 
 app:
-  id: ari:cloud:ecosystem::app/REPLACE_WITH_APP_ID
+  id: ari:cloud:ecosystem::app/aa4346e9-fdfe-4379-bd6f-d050c1936bac
   name: AgentLedger
   runtime:
     name: nodejs24.x
-  editor:
-    name: AgentLedger for Jira
-  environment:
-    variables:
-      - key: AGENT_DEFAULT_REF
-        default: 'JyP9X278CKWoNLAFg5kVr'
+    memoryMB: 256
+    architecture: arm64

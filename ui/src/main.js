@@ -173,9 +173,12 @@ function render() {
 
 async function load() {
   try {
-    if (!state.issueKey) {
-      const ctx = await invoke('resolver');
-      state.issueKey = (ctx && (ctx.issueKey || (ctx.issue && ctx.issue.key))) || '';
+    // The resolver is the only backend call that knows which issue the panel is
+    // attached to, and it also hands over the agent reference to pre-fill.
+    const ctx = await invoke('resolver');
+    if (ctx) {
+      state.issueKey = state.issueKey || ctx.issueKey || (ctx.issue && ctx.issue.key) || '';
+      if (!state.agentRef && ctx.defaultAgentRef) state.agentRef = ctx.defaultAgentRef;
     }
     state.panel = await invoke('get-panel', { issueKey: state.issueKey });
   } catch (e) {
