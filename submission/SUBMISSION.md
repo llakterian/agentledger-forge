@@ -195,10 +195,16 @@ silently ignored.
    `AgentLedger action policy`, `Verify agent identity`, `Work item context`,
    `Read the attestation trail` and `Record an agent action`.
 
-**Installation link:** _(paste here — generated in the developer console:
-<https://developer.atlassian.com/console/myapps/aa4346e9-fdfe-4379-bd6f-d050c1936bac/manage/distribution>
-→ **Distribution controls → Edit → `Sharing`**. There is no CLI command for
-this step.)_
+**Installation link:**
+
+```
+https://developer.atlassian.com/console/install/aa4346e9-fdfe-4379-bd6f-d050c1936bac?signature=AYABeFtCBDixiuv77kJwqdCI7rsAAAADAAdhd3Mta21zAEthcm46YXdzOmttczp1cy13ZXN0LTI6NzA5NTg3ODM1MjQzOmtleS83MDVlZDY3MC1mNTdjLTQxYjUtOWY5Yi1lM2YyZGNjMTQ2ZTcAuAECAQB4CxqLTo9l4lqXuFjNim1xJM%2Bp%2F3TVP9xHS2BrU5DRRucBWcpgE5LxkMJebZ39LHnSCQAAAH4wfAYJKoZIhvcNAQcGoG8wbQIBADBoBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDPpScY9zFH8PX%2BGO1QIBEIA7gXZExwq7kY5MNVKrqX0je4sOSwWH6bRXEp5Y3L1q%2F%2FveqUwOt88JbUHPfkKAksxo1f4EIeMHPvR%2F2c0AB2F3cy1rbXMAS2Fybjphd3M6a21zOmV1LXdlc3QtMTo3MDk1ODc4MzUyNDM6a2V5LzQ2MzBjZTZiLTAwYzMtNGRlMi04NzdiLTYyN2UyMDYwZTVjYwC4AQICAHi9bVMAkme4qVQX1fQHo6ePw3H40A7cGfz7yrmSfBWMXgH4u5xvKVCdg4F0VHUmKm2bAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMBvFY8SSk3Ssebpw0AgEQgDtukaX177dT%2FR3XZtI6NstLKQsHr7LTljeJc0JDxZO91fvYa8XB8lCKusfd6FmY3teX3v4npze9wz6yVwAHYXdzLWttcwBLYXJuOmF3czprbXM6dXMtZWFzdC0xOjcwOTU4NzgzNTI0MzprZXkvNmMxMjBiYTAtNGNkNS00OTg1LWI4MmUtNDBhMDQ5NTJjYzU3ALgBAgIAeDYASx0XCjkny4iLV6vz%2BKtEGSGT6kdt0QRpkn6D%2FlVEAf1C9DBSWt2rv%2BdkjI2DIOgAAAB%2BMHwGCSqGSIb3DQEHBqBvMG0CAQAwaAYJKoZIhvcNAQcBMB4GCWCGSAFlAwQBLjARBAxdjw5lT4GDWzsYPjgCARCAO8r6l5CnT%2B6L5ewHGaDfXak6ebcKc9sWhfOHTXDnblEXkFTgeZeL%2FoGNMPu4QSNq9xlr8yfOBPsvTiMMAgAAAAAMAAAQAAAAAAAAAAAAAAAAAHbxAvjTfCJxoAgO4XoRaxP%2F%2F%2F%2F%2FAAAAAQAAAAAAAAAAAAAAAQAAADJJYP7NWhFTgDHTlLu%2FiwnjVXxpLRrJ%2BsDchifB2oEgK2F8R0DT6jmr8mddXDqfhO79cTglOfc0cxS2N2jNzXVrjZI%3D&product=ecosystem&product=jira
+```
+
+The link installs into **Jira** (the issue panel) and **Ecosystem** (the Rovo agent and MCP
+server). Judges must be a site administrator. The app is unlicensed and free, so no billing is
+involved. The same link is in `submission/INSTALL_LINK.txt`; it is also on the Atlassian console
+at *Distribution → Installation link* if it ever needs regenerating.
 
 **Repository:** https://github.com/llakterian/agentledger-forge
 
@@ -290,8 +296,8 @@ See `PLAN.md` for the full checklist.
 - [x] `forge create` → app id `aa4346e9-fdfe-4379-bd6f-d050c1936bac` in `manifest.yml`
 - [x] `forge deploy` → development 2.11.0, production 2.0.0
 - [x] `forge install` → installed in Jira on `bugcrowdninja-team-xdnwur9g.atlassian.net`
-- [ ] Console **Distribution → Edit → `Sharing`** → copy the judge installation
-      link into the box above and into the Devpost form
+- [x] Console **Distribution → Edit → `Sharing with anyone`** → judge installation
+      link copied above (Jira + Ecosystem)
 - [ ] Confirm the Teamwork Graph scopes are granted; record a real graph
       response for the demo
 - [ ] Link a goal to the demo issue so the "Work item context" beat shows a

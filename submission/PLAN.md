@@ -23,9 +23,9 @@
 | Production deploy | done — 2.0.0 (25 Nov) |
 | Installed on a site | done — Jira on `bugcrowdninja-team-xdnwur9g.atlassian.net` (production build) |
 | Panel renders in the issue view | done — issue key KAN-1 read from `view.getContext()`, Agent identity card prefilled |
-| Judge installation link | **pending** — console only: Distribution → Edit → **Sharing** → copy the link |
+| Judge installation link | **done** — distribution set to *Sharing with anyone*; Jira + Ecosystem; link in `submission/INSTALL_LINK.txt` |
 | Demo video (YouTube, public, < 5 min) | **pending** — user-gated (recording) |
-| Devpost submission form | **pending** — needs the install link + video |
+| Devpost submission form | **pending** — needs the YouTube URL |
 
 ## Blocked on the user
 
@@ -55,19 +55,23 @@ forge install --non-interactive \
 CLI 15+ needs Node 22.23.4+; the local Node is 22.22.1, so CLI **14.2.0** is
 the working version. CLI 16 is installed but not logged in.
 
-### 2. Generate the judge installation link — TODO (console UI)
+### 2. Generate the judge installation link — DONE (25 Nov 2026)
 
 The installation link can only be produced in the developer console; there is
 no CLI command for it (`forge --help` has no `distribution`/`share` command in
 CLI 14 or 16).
 
 1. Open <https://developer.atlassian.com/console/myapps/aa4346e9-fdfe-4379-bd6f-d050c1936bac/manage/distribution>
-2. **Distribution controls → Edit → `Sharing`** (not *Sharing within
-   organization* — judges are outside our organization).
-3. Select the products to install onto (Jira; add Jira Service Management only
-   if the panel is also published there).
-4. Copy the **installation link** and paste it into the Devpost form and into
-   `submission/SUBMISSION.md`.
+2. **Distribution controls → Edit → `Sharing with anyone`** (not *Sharing
+   within organization* — judges are outside our organization).
+3. Fill in the app details: Company/Department `Independent (Leonard Sambu)`,
+   Customer support contact `lakterian9@gmail.com`, Privacy policy
+   <https://llakterian.github.io/privacy.html>, Terms of service
+   <https://llakterian.github.io/terms.html>.
+4. Under *Install this app onto*, tick **Jira** (the issue panel) and
+   **Ecosystem** (the Rovo agent and MCP server). Save changes.
+5. Copy the installation link. It is stored in `submission/INSTALL_LINK.txt`
+   and pasted into `submission/SUBMISSION.md`.
 
 App id for reference: `aa4346e9-fdfe-4379-bd6f-d050c1936bac`.
 
