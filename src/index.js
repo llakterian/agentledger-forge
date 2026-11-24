@@ -53,7 +53,7 @@ const forgeFetch = (...args) => fetch(...args);
  * instead receives the module payload directly, with the context as the second
  * argument. Both shapes are accepted so a handler can be called either way.
  */
-const { unpack, issueKeyFrom } = resolverArgs;
+const { unpack, issueKeyFrom, toolOperation } = resolverArgs;
 
 async function readChain(issueKey) {
   const raw = await kvs.get(STORE_PREFIX + issueKey);
@@ -306,7 +306,8 @@ export async function getTrail(first, second) {
  */
 export async function agentLedgerTool(first, second) {
   const { payload } = unpack(first, second);
-  const action = payload.action;
+  // The manifest names the input `operation` — that is what Forge delivers.
+  const action = toolOperation(payload);
   if (action === 'policy') {
     return { policy: policyTable(), note: 'Actions marked requiresHuman need a human approval attestation.' };
   }
@@ -366,7 +367,10 @@ export async function agentLedgerTool(first, second) {
       text: result.text,
     };
   }
-  throw new Error(`unknown tool action "${action}" — use policy, verify, record, trail or context`);
+  throw new Error(
+    `unknown tool action "${action}" — use policy, verify, record, trail or context ` +
+      `(received keys: ${Object.keys(payload).join(', ') || 'none'})`
+  );
 }
 
 export { GENESIS_HASH };

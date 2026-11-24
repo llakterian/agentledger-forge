@@ -35,6 +35,20 @@ export function unpack(first, second) {
 }
 
 /**
+ * Which operation a tool call asks for.
+ *
+ * The manifest declares the input as `operation` (see `agentledger-policy`
+ * and friends in manifest.yml), so that is the name Forge delivers. `action`
+ * is accepted as a fallback for hand-made calls.
+ *
+ * @param {object} payload
+ * @returns {string|null}
+ */
+export function toolOperation(payload) {
+  return payload?.operation || payload?.action || null;
+}
+
+/**
  * The issue key, wherever Forge decided to put it.
  *
  * @param {object} payload

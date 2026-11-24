@@ -9,7 +9,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { unpack, issueKeyFrom } from '../src/resolver.js';
+import { unpack, issueKeyFrom, toolOperation } from '../src/resolver.js';
 
 test('unpack reads the payload out of the Forge call envelope', () => {
   const { payload, context } = unpack({
@@ -61,4 +61,21 @@ test('issueKeyFrom finds the key in the context', () => {
 test('issueKeyFrom returns null when there is no key anywhere', () => {
   assert.equal(issueKeyFrom({}, {}), null);
   assert.equal(issueKeyFrom(undefined, undefined), null);
+});
+
+test('toolOperation reads the manifest input name "operation"', () => {
+  // The manifest declares the input as `operation`, so that is the key Forge
+  // delivers. Reading `payload.action` instead returned undefined and made
+  // every Rovo tool call fail with 'unknown tool action "undefined"'.
+  assert.equal(toolOperation({ operation: 'verify' }), 'verify');
+  assert.equal(toolOperation({ operation: 'policy', agentRef: 'ABC' }), 'policy');
+});
+
+test('toolOperation falls back to "action" for hand-made calls', () => {
+  assert.equal(toolOperation({ action: 'trail' }), 'trail');
+});
+
+test('toolOperation returns null when neither key is present', () => {
+  assert.equal(toolOperation({}), null);
+  assert.equal(toolOperation(undefined), null);
 });

@@ -146,6 +146,73 @@ for (const action of modules.action || []) {
   }
 }
 
+// ── action inputs vs. what the backend reads ──────────────────────────────────
+// Forge hands the backend exactly the inputs the manifest declares. If the
+// backend reads a different key, the tool silently receives undefined — the
+// agent gets "unknown tool action \"undefined\"" instead of an answer.
+//
+// That is exactly what happened: the manifest declared the input as
+// `operation` while the handler read `payload.action`. Cross-check every
+// declared input against the keys the backend actually reads.
+{
+  // Scan only the handlers the actions actually call, so that internal keys
+  // used elsewhere in the app do not show up as noise.
+  const functionBody = (name) => {
+    const start = new RegExp(`export\\s+(?:async\\s+)?function\\s+${name}\\s*\\(`).exec(indexSource);
+    if (!start) return '';
+    const rest = indexSource.slice(start.index);
+    const next = rest.slice(1).search(/\nexport\s+(?:async\s+)?function\s/);
+    return next === -1 ? rest : rest.slice(0, next + 1);
+  };
+
+  const actionFunctions = [...new Set((modules.action || []).map((a) => a.function).filter(Boolean))];
+  // The manifest function *key* is kebab-case; the exported handler may have a
+  // different name (key `agentledger-tool` -> handler `agentLedgerTool`).
+  const handlerName = (fnKey) => (modules.function || []).find((f) => f.key === fnKey)?.handler?.split('.')[1] || fnKey;
+  const readKeys = new Set();
+  for (const fn of actionFunctions) {
+    const body = functionBody(handlerName(fn));
+    if (!body) {
+      notes.push(`could not find the body of function "${fn}" — the action inputs were not checked`);
+      continue;
+    }
+    for (const m of body.matchAll(/payload\??\.([A-Za-z_$][\w$]*)/g)) readKeys.add(m[1]);
+    for (const m of body.matchAll(/payload\??\[['"]([A-Za-z_$][\w$]*)['"]\]/g)) readKeys.add(m[1]);
+  }
+  // `operation` is read through the toolOperation() helper in src/resolver.js.
+  const resolverSource = await readFile(join(root, 'src/resolver.js'), 'utf8').catch(() => '');
+  for (const m of resolverSource.matchAll(/payload\??\.([A-Za-z_$][\w$]*)/g)) readKeys.add(m[1]);
+
+  const declared = new Map(); // input name -> action keys that declare it
+  for (const action of modules.action || []) {
+    for (const name of Object.keys(action.inputs || {})) {
+      if (!declared.has(name)) declared.set(name, []);
+      declared.get(name).push(action.key);
+    }
+  }
+
+  for (const [name, actionKeys] of declared) {
+    if (!readKeys.has(name)) {
+      fail(
+        `action input "${name}" (declared by ${actionKeys.join(', ')}) is never read by the backend — ` +
+          `the tool would receive undefined. Read payload.${name} (or payload?.${name}) in the handler.`
+      );
+    }
+  }
+
+  // Structural keys and alternative spellings the backend accepts on purpose.
+  const tolerated = new Set([
+    'action', 'operation', 'op', 'key', 'issue', 'ref', 'agentId', 'identity',
+    'actorAccountId', 'actorType', 'ts', 'approved', 'extension',
+  ]);
+  for (const key of readKeys) {
+    if (declared.has(key) || tolerated.has(key)) continue;
+    notes.push(`the action handler reads payload.${key}, which no action declares as an input`);
+  }
+
+  console.log(`action inputs: ${declared.size} declared, ${[...declared.keys()].filter((n) => readKeys.has(n)).length} read by the backend`);
+}
+
 // ── rovo modules ──────────────────────────────────────────────────────────────
 const skillKeys = new Set((modules['rovo:skill'] || []).map((s) => s.key));
 for (const skill of modules['rovo:skill'] || []) {
