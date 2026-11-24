@@ -15,52 +15,61 @@
 | Identity verification (Concordium CIS-8004 + ERC-8004) | done, live-verified |
 | Policy engine + hash-chained attestation trail | done, 25 unit tests passing |
 | Teamwork Graph context (4 curated/direct queries) | coded, not yet run against a live site |
-| Rovo agent + MCP server + reusable skill | done, needs a live deploy to confirm |
+| Rovo agent + MCP server + reusable skill | done, deployed |
 | Local manifest validation | done (`npm run validate`) |
 | Public repository | done |
-| Forge deploy + install link | **blocked** — needs an Atlassian login |
-| Demo video (YouTube, public, < 5 min) | **blocked** — needs the live app |
-| Devpost submission form | **blocked** — needs the install link + video |
+| Forge app registered | done — `ari:cloud:ecosystem::app/aa4346e9-fdfe-4379-bd6f-d050c1936bac`, team app in developer space `bb-dev-space` |
+| Development deploy | done — 2.11.0 (25 Nov) |
+| Production deploy | done — 2.0.0 (25 Nov) |
+| Installed on a site | done — Jira on `bugcrowdninja-team-xdnwur9g.atlassian.net` (production build) |
+| Panel renders in the issue view | done — issue key KAN-1 read from `view.getContext()`, Agent identity card prefilled |
+| Judge installation link | **pending** — console only: Distribution → Edit → **Sharing** → copy the link |
+| Demo video (YouTube, public, < 5 min) | **pending** — user-gated (recording) |
+| Devpost submission form | **pending** — needs the install link + video |
 
 ## Blocked on the user
 
-1. **Atlassian account + Cloud developer site.** `forge login` opens a browser
-   flow. Everything after that is automated.
-2. **YouTube upload.** The browser already has the Google session; a public
+1. **The browser session.** The `browse` extension is currently disconnected
+   (`paired-offline`), and three remaining steps need it: the console
+   Distribution page, the Devpost form and the YouTube upload.
+2. **The demo recording itself** — the app is deployed and installed, so the
+   panel is live; the recording is the only user-gated part.
+3. **YouTube upload.** The browser already has the Google session; a public
    (< 5 min) upload is one pass once the demo is recorded.
-3. **The demo recording itself** — the app has to be deployed and installed
-   first.
 
 ## Step-by-step
 
-### 1. Get the app onto a site
+### 1. Get the app onto a site — DONE (25 Nov 2026)
 
 ```bash
 cd /home/c0bw3b/Proj/codegeist2026/agentledger-forge
-npm install -g @forge/cli@14          # 15+ needs Node 22.23.4+; local Node is 22.22.1
-forge login                           # opens a browser — the user signs in
-forge create agentledger-forge -t blank --personal -y --accept-terms
-````forge create` needs a Developer Space and cannot run unattended. It writes a
-fresh `manifest.yml`; **merge** the generated `app.id` into the existing
-manifest rather than replacing the file, and keep the existing
-`permissions`/`modules` blocks.
-
-```bash
-# paste the generated id into manifest.yml:
-#   app:
-#     id: ari:cloud:ecosystem::app/<uuid>
-npm run validate                       # catches every dangling reference locally
-forge deploy --environment development
+export PATH="/home/c0bw3b/.nvm/versions/node/v22.22.1/bin:$PATH"   # Forge CLI 14.2.0
+npm run check                                                   # build + 25 tests + manifest validation
+forge deploy --non-interactive --environment development         # → 2.11.0
+forge deploy --non-interactive --environment production          # → 2.0.0
+forge install --non-interactive \
+  --site https://bugcrowdninja-team-xdnwur9g.atlassian.net \
+  --product jira --environment production --confirm-scopes
 ```
 
-### 2. Install and generate the judge installation link
+CLI 15+ needs Node 22.23.4+; the local Node is 22.22.1, so CLI **14.2.0** is
+the working version. CLI 16 is installed but not logged in.
 
-```bash
-forge install --non-interactive
-```
+### 2. Generate the judge installation link — TODO (console UI)
 
-The **Start sharing your app** link (Devpost) produces the installation link
-judges use: install → pick a site → grant scopes.
+The installation link can only be produced in the developer console; there is
+no CLI command for it (`forge --help` has no `distribution`/`share` command in
+CLI 14 or 16).
+
+1. Open <https://developer.atlassian.com/console/myapps/aa4346e9-fdfe-4379-bd6f-d050c1936bac/manage/distribution>
+2. **Distribution controls → Edit → `Sharing`** (not *Sharing within
+   organization* — judges are outside our organization).
+3. Select the products to install onto (Jira; add Jira Service Management only
+   if the panel is also published there).
+4. Copy the **installation link** and paste it into the Devpost form and into
+   `submission/SUBMISSION.md`.
+
+App id for reference: `aa4346e9-fdfe-4379-bd6f-d050c1936bac`.
 
 If `forge deploy` rejects the manifest, the likely causes are:
 

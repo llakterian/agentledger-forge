@@ -195,7 +195,10 @@ silently ignored.
    `AgentLedger action policy`, `Verify agent identity`, `Work item context`,
    `Read the attestation trail` and `Record an agent action`.
 
-**Installation link:** _(to be filled after the Forge deploy — see PLAN.md)_
+**Installation link:** _(paste here — generated in the developer console:
+<https://developer.atlassian.com/console/myapps/aa4346e9-fdfe-4379-bd6f-d050c1936bac/manage/distribution>
+→ **Distribution controls → Edit → `Sharing`**. There is no CLI command for
+this step.)_
 
 **Repository:** https://github.com/llakterian/agentledger-forge
 
@@ -228,10 +231,12 @@ screen.
 
 See `PLAN.md` for the full checklist.
 
-- [ ] Atlassian Cloud developer site + Forge CLI login
-- [ ] `forge create` → paste the app id into `manifest.yml`
-- [ ] `forge deploy` → resolve any manifest validation errors
-- [ ] `forge install` → generate the judge installation link
+- [x] Atlassian Cloud developer site + Forge CLI login
+- [x] `forge create` → app id `aa4346e9-fdfe-4379-bd6f-d050c1936bac` in `manifest.yml`
+- [x] `forge deploy` → development 2.11.0, production 2.0.0
+- [x] `forge install` → installed in Jira on `bugcrowdninja-team-xdnwur9g.atlassian.net`
+- [ ] Console **Distribution → Edit → `Sharing`** → copy the judge installation
+      link into the box above and into the Devpost form
 - [ ] Confirm the Teamwork Graph scopes are granted; record a real graph
       response for the demo
 - [ ] Link a goal to the demo issue so the "Work item context" beat shows a
