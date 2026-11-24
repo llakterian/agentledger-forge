@@ -128,6 +128,9 @@ agentledger-forge/
 ├── ui/src/main.js            Custom UI panel (esbuild → static/panel/app.js)
 ├── static/panel/             index.html, styles.css, bundled app.js, icon, agent prompt
 ├── skills/agent-attestation/ SKILL.md — the reusable Rovo skill
+├── submission/
+│   ├── SUBMISSION.md         The Devpost submission text and demo script
+│   └── PLAN.md               Step-by-step deploy → submit checklist
 ├── test/                     node:test unit tests (25 passing)
 └── tools/
     ├── check-agent.mjs       Live check of both identity verifiers

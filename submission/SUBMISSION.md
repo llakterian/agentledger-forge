@@ -1,0 +1,198 @@
+# Codegeist 2026 — submission draft (AgentLedger)
+
+**Status:** draft. Everything that still needs a human (Atlassian login, deploy,
+YouTube upload, final Devpost form) is listed in `PLAN.md`.
+
+---
+
+## Project name
+
+**AgentLedger** — verifiable identity and a tamper-evident attestation trail for
+AI agents acting in Atlassian products.
+
+**One-liner:** Every consequential action an AI agent takes on a Jira work item
+is checked against a registry the agent does not control, evaluated against a
+human-gated action policy, and appended to a hash-chained attestation trail.
+
+## Category
+
+**Apps for Specialized Industries**
+
+Rationale: the problem AgentLedger solves is not a general Jira productivity
+problem — it is the accountability problem in domains where an AI agent's
+action carries regulatory or financial consequence (payments, refunds, service
+approvals, healthcare/insurance workflows). BotIn, the registry behind the
+demo, is a professional network and identity registry for AI agents with
+USDT subscriptions and an on-chain reputation score; the specialized-industry
+framing is the honest one.
+
+## Bonus prizes entered
+
+1. **Best Agents — Rovo/Assignable agents** ($1,500 × 6)
+   The app ships a `rovo:agent` (AgentLedger Auditor) *and* a reusable
+   `rovo:skill` (`agent-attestation`), so any Rovo agent in any workspace can
+   follow the same verify → policy → record rules.
+2. **Best app with Atlassian MCP** ($1,500 × 6)
+   The app exposes an MCP server (`rovo:mcp`) with five tools. The same tools
+   are reachable in Rovo Studio and from third-party MCP clients in Preview.
+3. **Best apps with Teamwork Graph integration** ($1,500 × 6)
+   The app consumes the Teamwork Graph API through
+   `api.asUser().requestTeamworkGraph(...)` to pull the goals, recent
+   discussion and linked pull requests behind a work item, and feeds that
+   context to the agent before it acts.
+
+**Not entered:** Best Marketplace published app (publishing to the Marketplace
+was out of scope for the time available).
+
+---
+
+## Explanation (how the project meets the main technology requirement)
+
+> Build an app using Atlassian's Forge platform and integrate with at least one
+> Atlassian product or platform capability.
+
+AgentLedger is a Forge app built on `nodejs24.x` that integrates with Jira, the
+Teamwork Graph and Rovo. It is not a wrapper around a language model: the model
+is optional, and every decision the app makes is enforced in code.
+
+### The problem it solves
+
+Teams are starting to hand real work to AI agents — triaging an issue,
+transitioning a ticket, approving a service request, triggering a refund.
+Three things are missing in that setup:
+
+1. **Attribution.** An agent can claim to be anything. There is no check that
+   the thing acting on your issue is the agent it says it is.
+2. **Evidence.** An agent's actions leave no durable trail. "The agent did it"
+   is a claim, not a record.
+3. **Authority.** Nothing states which actions an agent may take on its own and
+   which ones need a human signature — so either humans rubber-stamp
+   everything, or agents are trusted with everything.
+
+### What the app actually does
+
+**Verify.** The agent reference is checked against the Concordium Agent
+Registry (CIS-8004) over HTTPS. The registry re-fetches the agent card and
+compares its SHA-256 with the hash committed on chain, and returns every
+individual check it performed, so the UI can show *why* an identity is valid
+rather than just asserting that it is. A second source — an ERC-8004 identity
+registry — is supported through direct `eth_call` reads on Base Sepolia. If the
+registry holds no agents, the app reports "not registered" instead of failing:
+an honest negative answer is still an answer.
+
+**Evaluate.** A short, readable policy table. `comment`, `triage`,
+`transition`, `assign` and `create` are within policy for a verified agent.
+`approve`, `refund` and `close` are human-gated: the agent records them as
+`flagged` and waits for a human approval attestation. The table is code, not
+prompt text, so it cannot be talked around by an LLM.
+
+**Record.** Every consequential action becomes one attestation. Each attestation
+commits to the hash of the previous one, so editing or deleting an entry breaks
+the chain — and the panel reports exactly which entry broke it, instead of
+quietly continuing.
+
+**Context.** Before an agent acts, the app queries Atlassian's Teamwork Graph
+for the work item's connected context: the goals it serves, the recent
+discussion, the linked pull requests. The agent acts in light of that context,
+and a work item with no linked goal is reported as a finding rather than
+silently ignored.
+
+### What is in the box
+
+- **Jira issue panel** (`jira:issuePanel`, Custom UI): the verified identity
+  with every check, the policy table, and the live trail with its chain state.
+- **Rovo agent** (`rovo:agent`): "AgentLedger Auditor", whose prompt enforces
+  the verify → policy → context → record order and forbids claiming an action
+  that no tool call confirmed.
+- **MCP server** (`rovo:mcp`): five tools — policy, verify, context, trail,
+  record — reachable in Rovo Studio and from third-party MCP clients.
+- **Reusable skill** (`rovo:skill`): `agent-attestation` packages the same
+  rules so any Rovo agent in any workspace can follow them.
+- **Identity**: Concordium Agent Registry (CIS-8004) and ERC-8004, both
+  read-only, with the BotIn agent #1190 verifying live against the registry —
+  card hash matching the hash committed on chain, owner matching, extension
+  conformant.
+
+### Engineering notes
+
+- The policy engine, the hash chain and the encoding helpers are pure and have
+  no Atlassian dependency, so they are covered by unit tests that run without an
+  account (25 tests, all passing).
+- Keccak-256 is implemented in-project (Node's crypto only ships SHA3-256,
+  which is a different padding) and checked against the standard vectors.
+- External reads go through `@forge/api`'s `fetch` and
+  `api.asUser().requestTeamworkGraph(...)`, so the manifest's egress rules and
+  the user's own permissions apply. The app never sees data the acting user
+  cannot already see.
+- The app is written to report failures honestly: an empty registry, a missing
+  scope, a broken chain and a failed identity check are each reported as
+  themselves.
+
+---
+
+## Instructions for the judges
+
+1. Install the app from the installation link (see below) into a Jira site.
+2. Grant the requested scopes when prompted. The Teamwork Graph scopes
+   (`read:graph:*`) are optional — without them the graph queries return empty
+   and the app says so, and everything else keeps working.
+3. Open any Jira issue and click the **AgentLedger** icon in the issue view to
+   open the panel.
+4. In the panel, paste the agent reference `JyP9X278CKWoNLAFg5kVr` and press
+   **Verify**. The app calls the Concordium Agent Registry live and shows every
+   check: on-chain agent found, status active, agent URI present, card fetched,
+   card hash matches the hash committed on chain, badge present, owner matches,
+   contracts match, extension conformant.
+5. Press **Record** with an action such as *Comment on an issue* — the
+   attestation is appended to the trail. Try *Trigger a refund / payout*: it is
+   recorded as **flagged** (human-gated) and the agent is not allowed to proceed.
+6. Open the AgentLedger Auditor agent in Jira (Rovo) and ask it to show the
+   attestation trail for the issue. It answers from the trail, not from its own
+   memory of the conversation.
+7. If you have an MCP client, connect it to the app's MCP server and call
+   `AgentLedger action policy`, `Verify agent identity`, `Work item context`,
+   `Read the attestation trail` and `Record an agent action`.
+
+**Installation link:** _(to be filled after the Forge deploy — see PLAN.md)_
+
+**Repository:** https://github.com/llakterian/agentledger-forge
+
+**Live identity check without Atlassian:** the repository contains
+`npm run check:live`, which verifies BotIn #1190 against both registries and
+prints the full result.
+
+---
+
+## Demo video script (target: 3 minutes 30 seconds)
+
+| Beat | What happens on screen | Voiceover |
+| --- | --- | --- |
+| 0:00–0:20 | Title card: AgentLedger. Problem statement: "An agent acted on my issue. Who was it, was it allowed, and can I prove it?" | "Teams are handing real work to AI agents. But attribution, evidence and authority are all missing." |
+| 0:20–0:55 | Jira issue open. The AgentLedger panel appears. Paste `JyP9X278CKWoNLAFg5kVr`, press **Verify**. | "AgentLedger checks the agent against the Concordium Agent Registry — a registry the agent does not control. The registry re-fetches the agent card and compares its hash with the one committed on chain." |
+| 0:55–1:25 | The check list ticks over: card fetched, hash matches, owner matches, badge present. | "Every individual check comes back, so you can see why it passed — not just that it passed." |
+| 1:25–1:55 | Policy table expanded. `refund` and `close` marked *human approval required*. | "Then a policy decides what the agent may do alone. Approve, refund and close are human-gated. That is code, not prompt text — an LLM cannot talk around it." |
+| 1:55–2:30 | Press **Record** with "Comment on an issue" → the trail gains an entry. Press **Record** with "Trigger a refund" → verdict **flagged**. | "Every consequential action becomes one attestation, and each one commits to the hash of the last. Edit one entry and the chain says exactly where it broke." |
+| 2:30–2:50 | Rovo agent panel: "Show the attestation trail for this issue" → the agent answers from the trail. | "The Rovo agent answers from the trail, never from its own memory." |
+| 2:50–3:10 | MCP client window: call `Work item context` → goals, comments, linked PRs for the issue. | "And it acts in context: Teamwork Graph tells the agent which goals the work serves." |
+| 3:10–3:30 | Back to the issue panel: chain intact, head hash shown. | "AgentLedger: verifiable identity, human-gated authority, and a trail you can check. Built on Forge." |
+
+**Recording notes:** 1080p if possible; keep the browser zoom at 100 %; the
+panel is a narrow column, so read the check list at 125 % if it is too small on
+screen.
+
+---
+
+## Open items before submission
+
+See `PLAN.md` for the full checklist.
+
+- [ ] Atlassian Cloud developer site + Forge CLI login
+- [ ] `forge create` → paste the app id into `manifest.yml`
+- [ ] `forge deploy` → resolve any manifest validation errors
+- [ ] `forge install` → generate the judge installation link
+- [ ] Confirm the Teamwork Graph scopes are granted; record a real graph
+      response for the demo
+- [ ] Record the demo video (< 5 min) and upload it to YouTube as **public**
+- [ ] Fill the Devpost submission form (category, two/three bonus prizes,
+      installation link, YouTube URL, explanation)
+- [ ] Confirm Kenya is not on the excluded countries/territories list
