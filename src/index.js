@@ -58,8 +58,28 @@ async function issueSummary(issueKey) {
 
 /** Resolver for the jira:issuePanel module — supplies the panel with context. */
 export async function resolver(payload, context) {
-  const issueKey = payload.issue?.key || payload.key;
-  const cloudId = context?.cloudId || payload?.context?.cloudId || null;
+  // The issue panel's bridge dispatches every `invoke` call to this resolver
+  // regardless of the function key, so the panel routes its operations here
+  // with an explicit `op` and we dispatch by hand.
+  const op = payload && payload.op;
+  if (op === 'verify-agent') return verifyAgentHandler(payload, context);
+  if (op === 'get-panel') return getPanel(payload, context);
+  if (op === 'check-policy') return checkPolicy(payload, context);
+  if (op === 'record-action') return recordAction(payload, context);
+  if (op === 'approve-action') return approveAction(payload, context);
+  if (op === 'get-trail') return getTrail(payload, context);
+  if (op === 'get-issue-context') return getIssueContext(payload, context);
+  if (op) throw new Error(`unknown op "${op}"`);
+
+  // The module resolver is called with the panel's extension payload, while
+  // `invoke` calls arrive with whatever the panel sent — and may be empty.
+  // Pull the issue key out of every shape we have seen it in.
+  const issueKey =
+    payload?.issue?.key ||
+    payload?.extension?.issue?.key ||
+    payload?.key ||
+    null;
+  const cloudId = context?.cloudId || payload?.cloudId || payload?.context?.cloudId || null;
   // The panel resolver is the only place where Forge hands us the site's cloud
   // id for free, so remember it: the Teamwork Graph needs it to build ARIs.
   if (cloudId) {
@@ -70,6 +90,9 @@ export async function resolver(payload, context) {
     issueId: payload.issue?.id || null,
     cloudId,
     defaultAgentRef: DEFAULT_AGENT_REF,
+    dispatcherVersion: 2,
+    echoPayload: payload,
+    echoContextKeys: context ? Object.keys(context) : null,
   };
 }
 

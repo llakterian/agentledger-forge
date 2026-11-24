@@ -5,7 +5,12 @@
 // agent is, what the policy says, and the tamper-evident trail of what the
 // agent did.
 
-import { invoke } from '@forge/bridge';
+import { invoke, view } from '@forge/bridge';
+
+// Every `invoke` from this panel reaches the module resolver regardless of the
+// function key, so operations are passed as an explicit `op` on one resolver
+// call and dispatched server-side.
+const call = (op, payload = {}) => invoke('resolver', { op, ...payload });
 
 // The panel is a Custom UI resource, so the issue key comes from the backend
 // resolver rather than the URL.
@@ -173,14 +178,14 @@ function render() {
 
 async function load() {
   try {
-    // The resolver is the only backend call that knows which issue the panel is
-    // attached to, and it also hands over the agent reference to pre-fill.
+    // The issue key comes from the bridge's extension context; the backend
+    // resolver hands over the agent reference to pre-fill.
+    const context = await view.getContext();
+    const ext = (context && context.extension) || {};
+    state.issueKey = state.issueKey || ext.issue?.key || ext.issueKey || '';
     const ctx = await invoke('resolver');
-    if (ctx) {
-      state.issueKey = state.issueKey || ctx.issueKey || (ctx.issue && ctx.issue.key) || '';
-      if (!state.agentRef && ctx.defaultAgentRef) state.agentRef = ctx.defaultAgentRef;
-    }
-    state.panel = await invoke('get-panel', { issueKey: state.issueKey });
+    if (ctx && !state.agentRef && ctx.defaultAgentRef) state.agentRef = ctx.defaultAgentRef;
+    state.panel = await call('get-panel', { issueKey: state.issueKey });
   } catch (e) {
     state.panel = { trail: [], summary: { count: 0, chainValid: true, head: null }, policy: [] };
     state.message = `Could not load the panel: ${e.message}`;
@@ -192,9 +197,13 @@ async function verify() {
   state.busy = true;
   render();
   try {
-    const res = await invoke('verify-agent', { agentRef: state.agentRef });
-    state.identity = res.report;
-    state.message = null;
+    const res = await call('verify-agent', { agentRef: state.agentRef });
+    if (!res || !res.report) {
+      state.message = `Verify returned no report: ${JSON.stringify(res)}`;
+    } else {
+      state.identity = res.report;
+      state.message = null;
+    }
   } catch (e) {
     state.message = `Verification failed: ${e.message}`;
   } finally {
@@ -208,7 +217,7 @@ async function record() {
   const action = el('action').value;
   render();
   try {
-    const res = await invoke('record-action', {
+    const res = await call('record-action', {
       issueKey: state.issueKey,
       action,
       agentRef: state.agentRef,

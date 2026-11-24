@@ -9,7 +9,6 @@ modules:
       resolver:
         function: resolver
       icon: resource:agentledger-resource;icons/agent.svg
-      viewportSize: small
 
   # ── Rovo: a configurable agent + an MCP server exposing the same tools ──────
   rovo:agent:
@@ -214,7 +213,6 @@ permissions:
   scopes:
     - read:jira-work
     - write:jira-work
-    - read:me
     - storage:app
     # Teamwork Graph — the connected context behind a work item
     - read:graph:issue:jira
