@@ -231,6 +231,43 @@ if (!manifest.permissions?.scopes?.includes('storage:app')) {
   fail('the @forge/kvs package needs the storage:app scope');
 }
 
+// ── panel dispatcher ──────────────────────────────────────────────────────────
+// The issue panel routes every operation through the module resolver with an
+// explicit `op`, so a typo on either side of that string would only show up
+// as a runtime error in the browser. Cross-check them here instead.
+const panelSource = await readFile(join(root, 'ui/src/main.js'), 'utf8').catch(() => '');
+if (panelSource) {
+  const frontendOps = new Set([...panelSource.matchAll(/call\(\s*'([^']+)'/g)].map((m) => m[1]));
+  const backendOps = new Set([...indexSource.matchAll(/op\s*===\s*'([^']+)'/g)].map((m) => m[1]));
+
+  if (!frontendOps.size) {
+    notes.push('ui/src/main.js has no call() operations — the panel dispatcher could not be checked');
+  }
+  for (const op of frontendOps) {
+    if (!backendOps.has(op)) {
+      fail(`the panel sends op "${op}", but src/index.js has no branch for it`);
+    }
+  }
+  for (const op of backendOps) {
+    if (!frontendOps.has(op)) {
+      notes.push(`the backend handles op "${op}", which the panel never sends`);
+    }
+  }
+  // Every dispatched op must reach an exported handler.
+  for (const op of backendOps) {
+    const re = new RegExp(`op\\s*===\\s*'${op}'\\s*\\)\\s*return\\s+(\\w+)`);
+    const m = re.exec(indexSource);
+    if (!m) {
+      fail(`the branch for op "${op}" does not return a handler`);
+      continue;
+    }
+    if (!exportedNames.has(m[1]) && !/^(getPanel|verifyAgentHandler|checkPolicy|recordAction|approveAction|getTrail|getIssueContext)$/.test(m[1])) {
+      fail(`the branch for op "${op}" returns "${m[1]}", which src/index.js does not export`);
+    }
+  }
+  console.log(`panel dispatcher: ${frontendOps.size} op(s) sent, ${backendOps.size} handled`);
+}
+
 // ── report ────────────────────────────────────────────────────────────────────
 console.log(`manifest.yml parsed: ${Object.keys(modules).length} module types, ${resources.length} resource(s)`);
 console.log(`actions: ${(modules.action || []).length} · rovo:mcp: ${(modules['rovo:mcp'] || []).length} · rovo:agent: ${(modules['rovo:agent'] || []).length}`);
