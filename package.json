@@ -8,9 +8,10 @@
   "scripts": {
     "build": "esbuild ui/src/main.js --bundle --format=iife --target=es2020 --outfile=static/panel/app.js --minify",
     "build:dev": "esbuild ui/src/main.js --bundle --format=iife --target=es2020 --outfile=static/panel/app.js --sourcemap",
+    "build:backend": "esbuild src/index.js --bundle --platform=node --format=esm --external:@forge/api --external:@forge/kvs --external:@forge/bridge --outfile=node_modules/.cache/backend-check.js",
     "test": "node --test \"test/*.test.js\"",
     "validate": "node tools/validate-manifest.mjs",
-    "check": "npm run build && npm test && npm run validate",
+    "check": "npm run build && npm run build:backend && npm test && npm run validate",
     "check:live": "node tools/check-agent.mjs",
     "forge:deploy": "forge deploy --environment development",
     "forge:install": "forge install --non-interactive",

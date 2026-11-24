@@ -223,6 +223,9 @@ const usedHosts = ['agent-registry-mcp.concordium.com', 'sepolia.base.org', 'bot
 for (const host of usedHosts) {
   if (!allowed.has(host)) fail(`the backend calls ${host} but it is not in permissions.external.fetch.backend`);
 }
+if (![...allowed].some((h) => h.endsWith('atlassian.net'))) {
+  fail('the backend resolves the site cloud id via <site>.atlassian.net/_edge/tenant_info — allow it in permissions.external.fetch.backend');
+}
 
 if (!manifest.permissions?.scopes?.includes('storage:app')) {
   fail('the @forge/kvs package needs the storage:app scope');

@@ -13,6 +13,7 @@ import { appendAttestation, summarize, verifyChain, GENESIS_HASH } from './attes
 import { buildIssueAri, collectIssueContext, renderContext } from './context.js';
 
 const STORE_PREFIX = 'agentledger.trail.';
+const CLOUD_ID_KEY = 'agentledger.cloudId';
 
 // The Forge runtime does not expose a global fetch: external requests have to
 // go through the @forge/api client, which enforces the manifest egress rules.
@@ -53,11 +54,42 @@ async function issueSummary(issueKey) {
 /** Resolver for the jira:issuePanel module — supplies the panel with context. */
 export async function resolver(payload, context) {
   const issueKey = payload.issue?.key || payload.key;
+  const cloudId = context?.cloudId || payload?.context?.cloudId || null;
+  // The panel resolver is the only place where Forge hands us the site's cloud
+  // id for free, so remember it: the Teamwork Graph needs it to build ARIs.
+  if (cloudId) {
+    try { await kvs.set(CLOUD_ID_KEY, cloudId); } catch { /* storage is best effort */ }
+  }
   return {
     issueKey,
     issueId: payload.issue?.id || null,
-    cloudId: context?.cloudId || payload?.context?.cloudId || null,
+    cloudId,
   };
+}
+
+/** The site's cloud id, from the payload, from storage, or from the site itself. */
+async function resolveCloudId(issueKey, explicit) {
+  if (explicit) return explicit;
+  const stored = await kvs.get(CLOUD_ID_KEY).catch(() => null);
+  if (stored) return stored;
+  // Last resort: the Jira issue's `self` URL carries the site domain, and
+  // /_edge/tenant_info maps that domain to the cloud id.
+  try {
+    const res = await api.asUser().get(`/rest/api/3/issue/${encodeURIComponent(issueKey)}?fields=summary`);
+    const self = res.data?.self || '';
+    const site = /https:\/\/([^/]+)\.atlassian\.net/.exec(self);
+    if (site) {
+      const tenant = await fetch(`https://${site[1]}.atlassian.net/_edge/tenant_info`);
+      if (tenant.ok) {
+        const body = await tenant.json();
+        if (body && body.cloudId) {
+          await kvs.set(CLOUD_ID_KEY, body.cloudId).catch(() => {});
+          return body.cloudId;
+        }
+      }
+    }
+  } catch { /* fall through to the error below */ }
+  return null;
 }
 
 /**
@@ -72,7 +104,11 @@ async function resolveIssueAri(issueKey, cloudId) {
   const body = res.data || {};
   const issueId = body.id || null;
   if (!issueId) throw new Error(`could not resolve the numeric id of ${issueKey}`);
-  if (!cloudId) throw new Error('the cloud id of the site is not known');
+  if (!cloudId) {
+    throw new Error(
+      'the cloud id of the site is not known — open the AgentLedger panel on an issue once, or pass the cloudId explicitly',
+    );
+  }
   return buildIssueAri(cloudId, issueId);
 }
 
@@ -82,15 +118,15 @@ async function resolveIssueAri(issueKey, cloudId) {
  */
 export async function getIssueContext(payload) {
   const issueKey = payload.issueKey;
-  const cloudId = payload.cloudId || null;
   if (!issueKey) throw new Error('issueKey is required');
+  const cloudId = await resolveCloudId(issueKey, payload.cloudId);
   const ari = payload.ari || (await resolveIssueAri(issueKey, cloudId));
   const context = await collectIssueContext({
     ari,
     requestTeamworkGraph: (...args) => api.asUser().requestTeamworkGraph(...args),
     since: payload.since || 'P30D',
   });
-  return { issueKey, ari, context, text: renderContext(context) };
+  return { issueKey, ari, cloudId, context, text: renderContext(context) };
 }
 
 /** Everything the issue panel renders. */

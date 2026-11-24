@@ -179,6 +179,13 @@ modules:
           type: string
           required: false
           description: "ISO-8601 duration for recent comments, for example P30D. Defaults to P30D."
+        cloudId:
+          title: Cloud id
+          type: string
+          required: false
+          description: >
+            Optional. The site's cloud id, used to build the work item ARI. Only
+            needed if the AgentLedger panel has never been opened on an issue.
 
   # ── Functions ───────────────────────────────────────────────────────────────
   function:
@@ -221,6 +228,9 @@ permissions:
         - 'agent-registry-mcp.concordium.com'
         - 'sepolia.base.org'
         - 'botin-7ud.pages.dev'
+        # the site's own tenant_info endpoint, used to map the site domain to
+        # the cloud id when building Teamwork Graph ARIs
+        - '*.atlassian.net'
 
 app:
   id: ari:cloud:ecosystem::app/REPLACE_WITH_APP_ID
