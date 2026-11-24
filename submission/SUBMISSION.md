@@ -225,6 +225,61 @@ prints the full result.
 panel is a narrow column, so read the check list at 125 % if it is too small on
 screen.
 
+### Recording rig
+
+`submission/record_demo.sh` records the screen and prints the timed cue sheet
+for the beats above:
+
+```bash
+cd /home/c0bw3b/Proj/codegeist2026/agentledger-forge
+./submission/record_demo.sh --cue      # just the cue sheet
+./submission/record_demo.sh            # record a 4-minute take
+```
+
+The laptop panel is 1366×768 (no 1080p available), so the capture is native.
+
+### YouTube upload
+
+- **Title:** `AgentLedger — verifiable identity and a tamper-evident trail for AI agents in Atlassian`
+- **Visibility:** **Public** (unlisted will not satisfy the rules).
+- **Description:**
+
+```
+AgentLedger is a Forge app that answers three questions about any AI agent
+that acts inside an Atlassian product: who was it, was it allowed to act, and
+can I prove it afterwards?
+
+IDENTITY — the agent is verified against the Concordium Agent Registry
+(CIS-8004) over HTTPS. The registry re-fetches the agent's card and compares
+its SHA-256 with the hash committed on chain, so the agent cannot vouch for
+itself. A second verifier checks an ERC-8004 identity registry on Base
+Sepolia by direct eth_call.
+
+AUTHORITY — a policy engine (code, not prompt text) decides what an agent may
+do alone. Comment, triage, transition, assign and create are within policy for
+a verified agent; approve, refund and close are human-gated and are recorded
+as "flagged" until a reviewer signs off.
+
+EVIDENCE — every action becomes one attestation that commits to the hash of
+the previous one. Tamper with any entry and the panel names the exact entry
+that broke the chain.
+
+CONTEXT — Teamwork Graph tells the agent which work item it is acting on and
+which goals that work serves, before it acts.
+
+BUILT ON FORGE — jira:issuePanel (Custom UI), a rovo:agent, a rovo:mcp server
+with five tools, and a reusable rovo:skill.
+
+Install it from the judge installation link, open any Jira issue, click
+"View app actions" -> AgentLedger, and press Verify.
+
+Repo: https://github.com/llakterian/agentledger-forge
+Built by Sambu Leonard (@lakterian9) — https://linkedin.com/in/cheruiyoot-sambu
+```
+
+- **Tags:** `atlassian`, `codegeist2026`, `forge`, `jira`, `rovo`, `mcp`,
+  `ai-agents`, `security`, `audit-trail`
+
 ---
 
 ## Open items before submission
