@@ -44,8 +44,16 @@ function renderIdentity(report) {
     return `<p class="muted">No agent verified yet. Paste an agent reference and press <strong>Verify</strong>.</p>`;
   }
   const checks = Object.entries(report.checks || {});
-  const checkRows = checks.map(([name, ok]) =>
-    `<li>${ok === true ? '<span class="dot ok"></span>' : '<span class="dot bad"></span>'}<code>${name}</code></li>`).join('');
+  // A registry check only fails when it is explicitly false. Some checks carry
+  // a descriptive value instead of a boolean — "badge_embedding": "extension"
+  // means the badge is embedded as an extension, not that the check failed.
+  const checkRows = checks.map(([name, value]) => {
+    const failed = value === false;
+    const note = value !== true && value !== false
+      ? ` <span class="muted">(${escapeHtml(String(value))})</span>`
+      : '';
+    return `<li>${failed ? '<span class="dot bad"></span>' : '<span class="dot ok"></span>'}<code>${escapeHtml(name)}</code>${note}</li>`;
+  }).join('');
   return `
     <div class="identity">
       <div class="row">
