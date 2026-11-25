@@ -141,10 +141,21 @@ export async function collectIssueContext({ ari, requestTeamworkGraph, since = '
   ]);
 
   const unavailable = [];
-  if (!workItem.ok) unavailable.push(`work item: ${workItem.error}`);
-  if (!goals.ok) unavailable.push(`goals: ${goals.error}`);
-  if (!comments.ok) unavailable.push(`comments: ${comments.error}`);
-  if (!pullRequests.ok) unavailable.push(`pull requests: ${pullRequests.error}`);
+  // The Teamwork Graph API is in Early Access, so a site that is not enrolled
+  // — or an install where the read:graph:* scopes were not granted — simply has
+  // no `jiraWorkItem` field in its schema. Say that, because "validation error"
+  // alone tells the reader nothing.
+  const graphMissing = (name, result) => {
+    const e = result.error || '';
+    if (/FieldUndefined|is undefined/.test(e)) {
+      return `${name}: the site's Teamwork Graph schema does not expose this field — the graph API is in Early Access, so either the site is not enrolled or the read:graph:* scopes were not granted on the install`;
+    }
+    return `${name}: ${e}`;
+  };
+  if (!workItem.ok) unavailable.push(graphMissing('work item', workItem));
+  if (!goals.ok) unavailable.push(graphMissing('goals', goals));
+  if (!comments.ok) unavailable.push(graphMissing('comments', comments));
+  if (!pullRequests.ok) unavailable.push(graphMissing('pull requests', pullRequests));
 
   return {
     ari,

@@ -315,12 +315,23 @@ if (!manifest.permissions?.scopes?.includes('storage:app')) {
   if (readsData) {
     fail('a requestJira() response is read with .json(), not .data — .data is not on it');
   }
-  if (/requestJira\s*\(/.test(indexSource) && !/import\s+api\s*,\s*\{[^}]*\broute\b/.test(indexSource)) {
-    fail(
-      'src/index.js calls requestJira() but does not import `route` from @forge/api — ' +
-        'requestJira needs a route built with the `route` tagged template, and a plain ' +
-        'string fails at runtime'
-    );
+  if (/requestJira\s*\(/.test(indexSource)) {
+    // The routes are built with the `route` tagged template, which has to be
+    // imported from @forge/api in whichever module builds them.
+    let routeImported = false;
+    try {
+      const allSrc = await readFile(join(root, 'src/index.js'), 'utf8');
+      const extra = ['jira-routes.js', 'context.js', 'verifiers.js', 'policy.js', 'attestations.js'];
+      const sources = [allSrc, ...(await Promise.all(extra.map((f) => readFile(join(root, 'src', f), 'utf8').catch(() => ''))))];
+      routeImported = sources.some((s) => /import\s+\{\s*[^}]*\broute\b/.test(s) && /from\s+'@forge\/api'/.test(s));
+    } catch { /* the files are checked elsewhere */ }
+    if (!routeImported) {
+      fail(
+        'src/index.js calls requestJira() but no src module imports `route` from @forge/api — ' +
+          'requestJira needs a route built with the `route` tagged template, and a plain ' +
+          'string fails at runtime'
+      );
+    }
   }
 }
 
