@@ -209,11 +209,19 @@ base-sepolia, hash-chain, sha-256
 
 ## 3. Links
 
-**Try it out**
+**"Try it out" link field** — Devpost caps that field at **255 characters**, and
+the signed Atlassian installation link is 1,460, so it cannot go there. Put the
+source repository in the field and the installation link in the description body
+and in the judge instructions (both are long-text fields with no such cap):
 
-Installation link (Jira + Ecosystem) — paste the URL from
-`submission/INSTALL_LINK.txt` (also in `SUBMISSION.md`; the console copy is at
-*Distribution → Installation link* if it ever needs regenerating).
+```
+https://github.com/llakterian/agentledger-forge
+```
+
+**Installation link** — the full signed URL from `submission/INSTALL_LINK.txt`
+(it is already in the `## Try it out` section of the description, and in
+`SUBMISSION.md`; the console copy is at *Distribution → Installation link* if it
+ever needs regenerating).
 
 **Source code / GitHub**
 
