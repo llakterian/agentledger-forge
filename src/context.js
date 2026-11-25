@@ -158,6 +158,41 @@ export async function collectIssueContext({ ari, requestTeamworkGraph, since = '
 }
 
 /**
+ * Normalise a context result for the Rovo agent and the MCP client.
+ *
+ * `getIssueContext` returns a *failure report* when it cannot build the context
+ * — no cloud id, no issue id, a graph call that blew up. That report is flat
+ * (`available`, `unavailable`, `error`, `step`) while a success nests the same
+ * fields under `context`. Tools call this so both shapes produce one shape, and
+ * a failure is reported as data rather than surfacing as a 500.
+ *
+ * @param {object} result
+ * @returns {{issueKey: string|null, ari: string|null, available: boolean, unavailable: string[], workItem: object|null, goals: array, comments: array, pullRequests: array, text: string, error?: string, failedAt?: string}}
+ */
+export function normaliseContextResult(result) {
+  const ctx = (result && result.context) || {};
+  const pick = (...keys) => {
+    for (const k of keys) {
+      if (result[k] !== undefined) return result[k];
+    }
+    return undefined;
+  };
+  return {
+    issueKey: result?.issueKey ?? ctx.issueKey ?? null,
+    ari: pick('ari') ?? null,
+    cloudId: pick('cloudId') ?? null,
+    available: pick('available') ?? ctx.available ?? false,
+    unavailable: pick('unavailable') ?? ctx.unavailable ?? [],
+    workItem: pick('workItem') ?? ctx.workItem ?? null,
+    goals: pick('goals') ?? ctx.goals ?? [],
+    comments: pick('comments') ?? ctx.comments ?? [],
+    pullRequests: pick('pullRequests') ?? ctx.pullRequests ?? [],
+    text: result?.text ?? renderContext(ctx),
+    ...(pick('error') ? { error: pick('error'), failedAt: pick('step') } : {}),
+  };
+}
+
+/**
  * A compact, LLM-friendly rendering of the context. The Rovo agent receives
  * this string, so it stays short and factual.
  */

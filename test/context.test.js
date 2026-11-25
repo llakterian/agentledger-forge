@@ -6,7 +6,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildIssueAri, edgesOf, renderContext, runGraphQuery } from '../src/context.js';
+import { buildIssueAri, edgesOf, normaliseContextResult, renderContext, runGraphQuery } from '../src/context.js';
 
 test('an issue ARI follows the documented format', () => {
   assert.equal(
@@ -82,4 +82,52 @@ test('the rendered context says when no goal is linked', () => {
 test('the rendered context reports unavailable graph queries', () => {
   const text = renderContext({ ari: 'x', available: false, unavailable: ['goals: scope missing'], workItem: null, goals: [], comments: [], pullRequests: [] });
   assert.match(text, /scope missing/);
+});
+
+test("a failure report normalises to available:false with the reason kept", () => {
+  // getIssueContext returns this flat shape when it cannot build the context —
+  // no cloud id, no issue id, a graph call that blew up — so the tool, the agent
+  // and the panel all learn why instead of getting a bare 500.
+  const out = normaliseContextResult({
+    issueKey: 'KAN-5',
+    ari: null,
+    cloudId: null,
+    available: false,
+    unavailable: ['context'],
+    workItem: null,
+    goals: [],
+    comments: [],
+    pullRequests: [],
+    text: 'No Teamwork Graph context for KAN-5: the cloud id is not known.',
+    error: 'cloud id is not known',
+    step: 'resolveCloudId',
+  });
+  assert.equal(out.available, false);
+  assert.equal(out.ari, null);
+  assert.equal(out.error, 'cloud id is not known');
+  assert.equal(out.failedAt, 'resolveCloudId');
+  assert.match(out.text, /cloud id is not known/);
+  assert.deepEqual(out.goals, []);
+});
+
+test("a successful result still normalises to the nested fields", () => {
+  const out = normaliseContextResult({
+    issueKey: 'KAN-5',
+    ari: 'ari:cloud:jira:site:issue/9',
+    cloudId: 'site',
+    context: {
+      available: true,
+      unavailable: [],
+      workItem: { key: 'KAN-5', summary: 'Ship it' },
+      goals: [{ key: 'G-1', name: 'Ship it safely' }],
+      comments: [{ content: 'looks good', author: { name: 'Ada' } }],
+      pullRequests: [],
+    },
+    text: 'Work item: KAN-5 — Ship it',
+  });
+  assert.equal(out.available, true);
+  assert.equal(out.workItem.key, 'KAN-5');
+  assert.equal(out.goals.length, 1);
+  assert.equal(out.comments.length, 1);
+  assert.equal(out.error, undefined);
 });

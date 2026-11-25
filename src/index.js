@@ -10,7 +10,7 @@ import * as kvsModule from '@forge/kvs';
 import { verifyAgent } from './verifiers.js';
 import { evaluateAction, policyTable, ACTIONS } from './policy.js';
 import { appendAttestation, summarize, verifyChain, GENESIS_HASH } from './attestations.js';
-import { buildIssueAri, collectIssueContext, renderContext } from './context.js';
+import { buildIssueAri, collectIssueContext, normaliseContextResult, renderContext } from './context.js';
 import * as resolverArgs from './resolver.js';
 
 // @forge/kvs is a CommonJS package. Depending on how the bundler wires it up,
@@ -169,19 +169,72 @@ async function resolveIssueAri(issueKey, cloudId) {
 /**
  * Collect the Teamwork Graph context for an issue: the work item, the goals
  * linked to it, recent comments and linked pull requests.
+ *
+ * The function reports a failed context as itself rather than throwing: the
+ * Rovo agent and the MCP client both need the reason ("the cloud id is not
+ * known", "the goals query is unavailable"), and a 500 gives them nothing.
  */
 export async function getIssueContext(first, second) {
   const { payload } = unpack(first, second);
   const issueKey = payload.issueKey;
   if (!issueKey) throw new Error('issueKey is required');
-  const cloudId = await resolveCloudId(issueKey, payload.cloudId);
-  const ari = payload.ari || (await resolveIssueAri(issueKey, cloudId));
-  const context = await collectIssueContext({
-    ari,
-    requestTeamworkGraph: (...args) => api.asUser().requestTeamworkGraph(...args),
-    since: payload.since || 'P30D',
+
+  const report = (text, extra = {}) => ({
+    issueKey,
+    ari: null,
+    cloudId: null,
+    available: false,
+    unavailable: ['context'],
+    workItem: null,
+    goals: [],
+    comments: [],
+    pullRequests: [],
+    text,
+    ...extra,
   });
-  return { issueKey, ari, cloudId, context, text: renderContext(context) };
+
+  let cloudId;
+  try {
+    cloudId = await resolveCloudId(issueKey, payload.cloudId);
+  } catch (err) {
+    return report(`No Teamwork Graph context for ${issueKey}: the site's cloud id could not be resolved (${err.message}).`, {
+      error: err.message,
+      step: 'resolveCloudId',
+    });
+  }
+  if (!cloudId) {
+    return report(
+      `No Teamwork Graph context for ${issueKey}: the site's cloud id is not known. Open the AgentLedger panel on an issue once, or pass the cloudId explicitly.`,
+      { error: 'cloud id is not known', step: 'resolveCloudId' },
+    );
+  }
+
+  let ari;
+  try {
+    ari = payload.ari || (await resolveIssueAri(issueKey, cloudId));
+  } catch (err) {
+    return report(`No Teamwork Graph context for ${issueKey}: ${err.message}`, {
+      error: err.message,
+      step: 'resolveIssueAri',
+      cloudId,
+    });
+  }
+
+  try {
+    const context = await collectIssueContext({
+      ari,
+      requestTeamworkGraph: (...args) => api.asUser().requestTeamworkGraph(...args),
+      since: payload.since || 'P30D',
+    });
+    return { issueKey, ari, cloudId, context, text: renderContext(context) };
+  } catch (err) {
+    return report(`No Teamwork Graph context for ${issueKey}: ${err.message}`, {
+      error: err.message,
+      step: 'collectIssueContext',
+      ari,
+      cloudId,
+    });
+  }
 }
 
 /** Everything the issue panel renders. */
@@ -355,17 +408,9 @@ export async function agentLedgerTool(first, second) {
       cloudId: payload.cloudId,
       since: payload.since,
     });
-    return {
-      issueKey: result.issueKey,
-      ari: result.ari,
-      available: result.context.available,
-      unavailable: result.context.unavailable,
-      workItem: result.context.workItem,
-      goals: result.context.goals,
-      comments: result.context.comments,
-      pullRequests: result.context.pullRequests,
-      text: result.text,
-    };
+    // getIssueContext reports a failure as itself now, so a missing cloud id or
+    // an unavailable graph query comes back as data instead of a 500.
+    return normaliseContextResult(result);
   }
   throw new Error(
     `unknown tool action "${action}" — use policy, verify, record, trail or context ` +
