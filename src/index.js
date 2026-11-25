@@ -11,6 +11,7 @@ import { verifyAgent } from './verifiers.js';
 import { evaluateAction, policyTable, ACTIONS } from './policy.js';
 import { appendAttestation, summarize, verifyChain, GENESIS_HASH } from './attestations.js';
 import { buildIssueAri, collectIssueContext, normaliseContextResult, renderContext } from './context.js';
+import { jiraIssueFull, jiraIssueSummary } from './jira-routes.js';
 import * as resolverArgs from './resolver.js';
 
 // @forge/kvs is a CommonJS package. Depending on how the bundler wires it up,
@@ -70,12 +71,14 @@ async function writeChain(issueKey, chain) {
   await kvs.set(STORE_PREFIX + issueKey, JSON.stringify(chain));
 }
 
-// @forge/api v6 has no `.get()` on `asUser()` — a Jira REST read goes through
-// `requestJira(path)` and returns a Response you read with `.json()`. Calling
-// `.get()` fails at runtime as "out.asUser(...).get is not a function", which
-// surfaces in the agent as a bare 500 with no reason attached.
-async function jiraGet(path) {
-  const res = await api.asUser().requestJira(path);
+// A Jira REST read in @forge/api v6: `requestJira` takes a *route* built with
+// the `route` tagged template (a plain string fails at runtime with "You must
+// create your route using the 'route' export from '@forge/api'"), and the
+// response is read with `.json()` rather than `.data`. The route builders live
+// in src/jira-routes.js, unit-tested there.
+
+async function jiraGet(theRoute) {
+  const res = await api.asUser().requestJira(theRoute);
   const body = await res.json().catch(() => ({}));
   return body || {};
 }
@@ -83,7 +86,7 @@ async function jiraGet(path) {
 /** Pull the issue summary from the Jira REST API (as the current user). */
 async function issueSummary(issueKey) {
   try {
-    const body = await jiraGet(`/rest/api/3/issue/${encodeURIComponent(issueKey)}?fields=summary,status,issuetype,assignee`);
+    const body = await jiraGet(jiraIssueFull(issueKey));
     return {
       key: body.key || issueKey,
       summary: body.fields?.summary || '',
@@ -138,7 +141,7 @@ async function resolveCloudId(issueKey, explicit) {
   // Last resort: the Jira issue's `self` URL carries the site domain, and
   // /_edge/tenant_info maps that domain to the cloud id.
   try {
-    const body = await jiraGet(`/rest/api/3/issue/${encodeURIComponent(issueKey)}?fields=summary`);
+    const body = await jiraGet(jiraIssueSummary(issueKey));
     const self = body?.self || '';
     const site = /https:\/\/([^/]+)\.atlassian\.net/.exec(self);
     if (site) {
@@ -163,7 +166,7 @@ async function resolveCloudId(issueKey, explicit) {
  * the Jira REST API and the site id comes from the Forge context.
  */
 async function resolveIssueAri(issueKey, cloudId) {
-  const body = await jiraGet(`/rest/api/3/issue/${encodeURIComponent(issueKey)}?fields=summary`);
+  const body = await jiraGet(jiraIssueSummary(issueKey));
   const issueId = body.id || null;
   if (!issueId) throw new Error(`could not resolve the numeric id of ${issueKey}`);
   if (!cloudId) {

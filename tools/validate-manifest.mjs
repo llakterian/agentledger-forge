@@ -315,6 +315,13 @@ if (!manifest.permissions?.scopes?.includes('storage:app')) {
   if (readsData) {
     fail('a requestJira() response is read with .json(), not .data — .data is not on it');
   }
+  if (/requestJira\s*\(/.test(indexSource) && !/import\s+api\s*,\s*\{[^}]*\broute\b/.test(indexSource)) {
+    fail(
+      'src/index.js calls requestJira() but does not import `route` from @forge/api — ' +
+        'requestJira needs a route built with the `route` tagged template, and a plain ' +
+        'string fails at runtime'
+    );
+  }
 }
 
 // ── panel dispatcher ──────────────────────────────────────────────────────────
