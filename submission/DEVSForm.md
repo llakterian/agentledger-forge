@@ -5,32 +5,38 @@ Everything the Codegeist 2026 project form asks for, in the order it asks.
 **The demo video is published:** <https://youtu.be/tKIMEUkLjo4> (public, 4:11).
 Every value below is complete, so filling the form is a paste-in job.
 
-Before filling the form you must first click **Create project** on
-<https://devpost.com/submit-to/31572-codegeist-2026-build-with-context-ship-with-confidence/manage/submissions>
-— that button is gated by an invisible reCAPTCHA, which I must not solve.
-Registration for the hackathon itself is done (25 Nov 2026, entered as a solo
-participant).
+## How to create the project (one human step)
+
+Go straight to <https://devpost.com/software/new> — that is the same
+"Post a new project" form, reached without the submissions page.
+
+The project name box is already filled in. The only thing left is the
+**reCAPTCHA checkbox** ("I'm not a robot") which I must not tick — tick it, click
+**Save and continue**, and the rest of the form opens.
+
+Registration for the hackathon itself is already done (25 Nov 2026, entered as a
+solo participant, source = Atlassian).
 
 ---
 
 ## 1. Basics
 
-**Project name**
+**Project name** — Devpost limits this to **60 characters**, so the short form
+below is the one to use (already typed into the form on
+<https://devpost.com/software/new>):
 
 ```
-AgentLedger — verifiable identity and a tamper-evident attestation trail for AI agents in Atlassian
+AgentLedger — verifiable identity for AI agents in Jira
 ```
+
+The full wording, for the tagline and the story below, is *AgentLedger —
+verifiable identity and a tamper-evident attestation trail for AI agents acting
+in Atlassian products*.
 
 **Tagline / one-liner**
 
 ```
 Verified identity, human-gated authority, and a trail you can check.
-```
-
-(If the field has a hard character limit, use the shorter form below.)
-
-```
-Verified identity, human-gated authority, a trail you can check.
 ```
 
 **Project ownership**
