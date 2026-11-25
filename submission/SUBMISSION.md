@@ -294,15 +294,13 @@ See `PLAN.md` for the full checklist.
 
 - [x] Atlassian Cloud developer site + Forge CLI login
 - [x] `forge create` → app id `aa4346e9-fdfe-4379-bd6f-d050c1936bac` in `manifest.yml`
-- [x] `forge deploy` → development 2.11.0, production 2.0.0
+- [x] `forge deploy` → development 2.13.0, production 2.3.0
 - [x] `forge install` → installed in Jira on `bugcrowdninja-team-xdnwur9g.atlassian.net`
 - [x] Console **Distribution → Edit → `Sharing with anyone`** → judge installation
       link copied above (Jira + Ecosystem)
-- [ ] Confirm the Teamwork Graph scopes are granted; record a real graph
-      response for the demo
-- [ ] Link a goal to the demo issue so the "Work item context" beat shows a
-      goal, not an empty result
-- [ ] Record the demo video (< 5 min) and upload it to YouTube as **public**
-- [ ] Fill the Devpost submission form (category, two/three bonus prizes,
-      installation link, YouTube URL, explanation)
-- [x] Confirm Kenya is not on the excluded countries/territories list
+- [x] Record the demo video (4:11, under the 5-minute limit) and upload it to
+      YouTube as **public** — <https://youtu.be/tKIMEUkLjo4>, Tech_Ale channel
+- [x] Register on Devpost for the hackathon (solo, source = Atlassian)
+- [ ] Click **Create project** on the Devpost submissions page (reCAPTCHA-gated),
+      then fill the form from `submission/DEVSForm.md`
+- [ ] Confirm Kenya is not on the excluded countries/territories list

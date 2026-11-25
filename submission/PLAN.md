@@ -24,8 +24,9 @@
 | Installed on a site | done — Jira on `bugcrowdninja-team-xdnwur9g.atlassian.net` (production build) |
 | Panel renders in the issue view | done — issue key KAN-1 read from `view.getContext()`, Agent identity card prefilled |
 | Judge installation link | **done** — distribution set to *Sharing with anyone*; Jira + Ecosystem; link in `submission/INSTALL_LINK.txt` |
-| Demo video (YouTube, public, < 5 min) | **pending** — user-gated (recording) |
-| Devpost submission form | **pending** — needs the YouTube URL |
+| Demo video (YouTube, public, < 5 min) | **done** — <https://youtu.be/tKIMEUkLjo4>, 4:11 |
+| Devpost registration | **done** — solo, source = Atlassian |
+| Devpost project + submission form | **pending** — the *Create project* button is reCAPTCHA-gated, so a human must click it; every field value is in `submission/DEVSForm.md` |
 
 ## Blocked on the user
 

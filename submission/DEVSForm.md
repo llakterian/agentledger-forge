@@ -2,14 +2,12 @@
 
 Everything the Codegeist 2026 project form asks for, in the order it asks.
 
-**One field is deliberately blank:** the YouTube URL, because the video is
-uploaded after this file was written. Fill it as soon as the upload finishes
-(`submission/agentledger_demo.mp4` is the file to upload — 251 s, under the
-five-minute limit).
+**The demo video is published:** <https://youtu.be/tKIMEUkLjo4> (public, 4:11).
+Every value below is complete, so filling the form is a paste-in job.
 
 Before filling the form you must first click **Create project** on
 <https://devpost.com/submit-to/31572-codegeist-2026-build-with-context-ship-with-confidence/manage/submissions>
-— that button is gated by an invisible reCAPTCHA, so a human has to click it.
+— that button is gated by an invisible reCAPTCHA, which I must not solve.
 Registration for the hackathon itself is done (25 Nov 2026, entered as a solo
 participant).
 
@@ -220,11 +218,12 @@ https://github.com/llakterian/agentledger-forge
 **Demo video (public YouTube)**
 
 ```
-<PASTE THE PUBLIC YOUTUBE URL HERE>
+https://youtu.be/tKIMEUkLjo4
 ```
 
-The file to upload is `submission/agentledger_demo.mp4` (251 s, h264, 1280x536).
-Upload as **Public**, not unlisted.
+Uploaded 25 Nov 2026, **Public**, on the Tech_Ale channel
+(`UC6vBAiT4UmvbAJ39w7mkOsw`) of lakterian9@gmail.com. 4:11 long, h264, 1280x536.
+The file it came from is `submission/agentledger_demo.mp4`.
 
 ---
 
