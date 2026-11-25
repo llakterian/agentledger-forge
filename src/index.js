@@ -70,11 +70,20 @@ async function writeChain(issueKey, chain) {
   await kvs.set(STORE_PREFIX + issueKey, JSON.stringify(chain));
 }
 
+// @forge/api v6 has no `.get()` on `asUser()` — a Jira REST read goes through
+// `requestJira(path)` and returns a Response you read with `.json()`. Calling
+// `.get()` fails at runtime as "out.asUser(...).get is not a function", which
+// surfaces in the agent as a bare 500 with no reason attached.
+async function jiraGet(path) {
+  const res = await api.asUser().requestJira(path);
+  const body = await res.json().catch(() => ({}));
+  return body || {};
+}
+
 /** Pull the issue summary from the Jira REST API (as the current user). */
 async function issueSummary(issueKey) {
   try {
-    const res = await api.asUser().get(`/rest/api/3/issue/${encodeURIComponent(issueKey)}?fields=summary,status,issuetype,assignee`);
-    const body = res.data || {};
+    const body = await jiraGet(`/rest/api/3/issue/${encodeURIComponent(issueKey)}?fields=summary,status,issuetype,assignee`);
     return {
       key: body.key || issueKey,
       summary: body.fields?.summary || '',
@@ -129,8 +138,8 @@ async function resolveCloudId(issueKey, explicit) {
   // Last resort: the Jira issue's `self` URL carries the site domain, and
   // /_edge/tenant_info maps that domain to the cloud id.
   try {
-    const res = await api.asUser().get(`/rest/api/3/issue/${encodeURIComponent(issueKey)}?fields=summary`);
-    const self = res.data?.self || '';
+    const body = await jiraGet(`/rest/api/3/issue/${encodeURIComponent(issueKey)}?fields=summary`);
+    const self = body?.self || '';
     const site = /https:\/\/([^/]+)\.atlassian\.net/.exec(self);
     if (site) {
       const tenant = await fetch(`https://${site[1]}.atlassian.net/_edge/tenant_info`);
@@ -154,8 +163,7 @@ async function resolveCloudId(issueKey, explicit) {
  * the Jira REST API and the site id comes from the Forge context.
  */
 async function resolveIssueAri(issueKey, cloudId) {
-  const res = await api.asUser().get(`/rest/api/3/issue/${encodeURIComponent(issueKey)}?fields=summary`);
-  const body = res.data || {};
+  const body = await jiraGet(`/rest/api/3/issue/${encodeURIComponent(issueKey)}?fields=summary`);
   const issueId = body.id || null;
   if (!issueId) throw new Error(`could not resolve the numeric id of ${issueKey}`);
   if (!cloudId) {

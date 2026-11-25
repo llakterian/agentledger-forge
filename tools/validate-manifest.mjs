@@ -298,6 +298,25 @@ if (!manifest.permissions?.scopes?.includes('storage:app')) {
   fail('the @forge/kvs package needs the storage:app scope');
 }
 
+// ── @forge/api v6 shapes ─────────────────────────────────────────────────────
+// @forge/api v6 dropped the `.get()/.post()` helpers on asUser()/asApp(): a Jira
+// read is `api.asUser().requestJira(path)` and the result is read with `.json()`.
+// A leftover `.get()` only fails at runtime, as "out.asUser(...).get is not a
+// function" — which the agent then reports as a bare 500.
+{
+  const stale = [...indexSource.matchAll(/asUser\(\)\??\.(get|post|put|delete|patch)\s*\(/g)].map((m) => m[1]);
+  if (stale.length) {
+    fail(
+      `src/index.js calls api.asUser().${stale[0]}(...) — @forge/api v6 has no such method. ` +
+        'Use api.asUser().requestJira(path) and read the result with .json().'
+    );
+  }
+  const readsData = /requestJira\([^)]*\)[^;]*\.data/.test(indexSource);
+  if (readsData) {
+    fail('a requestJira() response is read with .json(), not .data — .data is not on it');
+  }
+}
+
 // ── panel dispatcher ──────────────────────────────────────────────────────────
 // The issue panel routes every operation through the module resolver with an
 // explicit `op`, so a typo on either side of that string would only show up
