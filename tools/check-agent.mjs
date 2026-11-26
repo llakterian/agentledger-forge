@@ -47,7 +47,7 @@ for (const [label, fn] of targets) {
     const emptyRegistry = report.source === 'erc8004' && report.extra?.totalAgents === '0';
     if (!report.valid && !emptyRegistry) failed++;
     if (emptyRegistry) {
-      console.log('  note         : registry is deployed but empty — BotIn is registered on Concordium');
+      console.log('  note         : registry is deployed but empty: BotIn is registered on Concordium');
     }
   } catch (e) {
     failed++;

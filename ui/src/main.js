@@ -1,4 +1,4 @@
-// AgentLedger issue panel — frontend.
+// AgentLedger issue panel, frontend.
 //
 // Talks to the Forge backend through the Atlassian bridge (`invoke`). The UI is
 // deliberately small and dependency-light: a single page that shows who the
@@ -26,12 +26,12 @@ const state = {
 const el = (id) => document.getElementById(id);
 
 function shortHash(hash) {
-  if (!hash) return '—';
+  if (!hash) return '-';
   return hash.length > 18 ? `${hash.slice(0, 10)}…${hash.slice(-6)}` : hash;
 }
 
 function time(ts) {
-  if (!ts) return '—';
+  if (!ts) return '-';
   try { return new Date(ts).toLocaleString(); } catch { return ts; }
 }
 
@@ -45,7 +45,7 @@ function renderIdentity(report) {
   }
   const checks = Object.entries(report.checks || {});
   // A registry check only fails when it is explicitly false. Some checks carry
-  // a descriptive value instead of a boolean — "badge_embedding": "extension"
+  // a descriptive value instead of a boolean, "badge_embedding": "extension"
   // means the badge is embedded as an extension, not that the check failed.
   const checkRows = checks.map(([name, value]) => {
     const failed = value === false;
@@ -66,11 +66,11 @@ function renderIdentity(report) {
         ${report.valid ? badge('identity verified', 'ok') : badge('identity NOT verified', 'bad')}
       </div>
       <dl class="facts">
-        <dt>Agent id</dt><dd class="mono">${escapeHtml(String(report.agentId ?? '—'))}</dd>
-        <dt>Reference</dt><dd class="mono">${escapeHtml(report.tokenAddress || state.agentRef || '—')}</dd>
-        <dt>Owner</dt><dd class="mono">${escapeHtml(report.owner || '—')}</dd>
-        <dt>Status</dt><dd>${escapeHtml(report.status || '—')}</dd>
-        <dt>Agent card</dt><dd class="mono break">${report.agentUri ? `<a href="${escapeHtml(report.agentUri)}" target="_blank" rel="noreferrer">${escapeHtml(report.agentUri)}</a>` : '—'}</dd>
+        <dt>Agent id</dt><dd class="mono">${escapeHtml(String(report.agentId ?? '-'))}</dd>
+        <dt>Reference</dt><dd class="mono">${escapeHtml(report.tokenAddress || state.agentRef || '-')}</dd>
+        <dt>Owner</dt><dd class="mono">${escapeHtml(report.owner || '-')}</dd>
+        <dt>Status</dt><dd>${escapeHtml(report.status || '-')}</dd>
+        <dt>Agent card</dt><dd class="mono break">${report.agentUri ? `<a href="${escapeHtml(report.agentUri)}" target="_blank" rel="noreferrer">${escapeHtml(report.agentUri)}</a>` : '-'}</dd>
         ${report.cardHashMatches !== null ? `<dt>Card hash</dt><dd>${report.cardHashMatches ? badge('matches on-chain hash', 'ok') : badge('MISMATCH', 'bad')} <span class="mono muted">${shortHash(report.cardHashComputed)}</span></dd>` : ''}
       </dl>
       ${checkRows ? `<div class="checks"><div class="muted">Registry checks</div><ul class="checklist">${checkRows}</ul></div>` : ''}
@@ -87,7 +87,7 @@ function renderTrail(panel) {
     const verdictKind = e.verdict === 'allowed' || e.verdict === 'approved' ? 'ok' : e.verdict === 'flagged' ? 'warn' : 'bad';
     return `<tr>
       <td>${escapeHtml(e.action)}</td>
-      <td>${e.agentId ? `<span class="mono">#${escapeHtml(String(e.agentId))}</span>` : '<span class="muted">—</span>'}</td>
+      <td>${e.agentId ? `<span class="mono">#${escapeHtml(String(e.agentId))}</span>` : '<span class="muted">, </span>'}</td>
       <td>${badge(e.verdict, verdictKind)}</td>
       <td>${escapeHtml(e.actorType || '')}</td>
       <td class="muted">${time(e.ts)}</td>
@@ -98,7 +98,7 @@ function renderTrail(panel) {
   return `
     <div class="chain ${s.chainValid ? 'ok' : 'bad'}">
       ${s.chainValid
-        ? `Chain intact — ${s.count} attestation${s.count === 1 ? '' : 's'}, head <span class="mono">${shortHash(s.head)}</span>`
+        ? `Chain intact, ${s.count} attestation${s.count === 1 ? '' : 's'}, head <span class="mono">${shortHash(s.head)}</span>`
         : `Chain broken at entry ${s.brokenAt}: ${escapeHtml(s.reason || '')}`}
     </div>
     <table class="trail">
@@ -232,7 +232,7 @@ async function record() {
       actorType: 'agent',
     });
     state.identity = res.identity || state.identity;
-    state.message = `Recorded: ${res.decision.verdict} — ${res.decision.reason}`;
+    state.message = `Recorded: ${res.decision.verdict}, ${res.decision.reason}`;
     await load();
   } catch (e) {
     state.message = `Could not record: ${e.message}`;

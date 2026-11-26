@@ -3,7 +3,7 @@
 // @forge/api v6 changed how a Jira read is addressed: `requestJira` takes a
 // route built with the `route` tagged template, not a plain string, and the
 // response is read with `.json()`. Getting this wrong fails at runtime, which
-// the Rovo agent can only report as a 500 — so the route builders live in
+// the Rovo agent can only report as a 500. So the route builders live in
 // src/jira-routes.js, are pure, and are tested here.
 
 import test from 'node:test';

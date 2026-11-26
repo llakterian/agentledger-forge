@@ -2,7 +2,7 @@
 
 **Verifiable identity and a tamper-evident attestation trail for AI agents acting in Atlassian products.**
 
-Built for [Codegeist 2026](https://codegeist2026.devpost.com/) — Atlassian's annual
+Built for [Codegeist 2026](https://codegeist2026.devpost.com/): Atlassian's annual
 Forge hackathon ($120,000 in cash).
 
 ---
@@ -10,7 +10,7 @@ Forge hackathon ($120,000 in cash).
 ## The problem
 
 Teams are handing real work to AI agents: triage an issue, transition a ticket,
-approve a service request, trigger a refund. What is missing is not capability —
+approve a service request, trigger a refund. What is missing is not capability:
 it is **attribution**.
 
 - An agent can *claim* to be anything. There is no check that the thing acting on
@@ -30,9 +30,9 @@ an agent may take on its own and which ones need a human signature.
 | Piece | Module | What it does |
 | --- | --- | --- |
 | Issue panel | `jira:issuePanel` | Shows the verified identity, the policy and the live trail for a work item |
-| Agent | `rovo:agent` | "AgentLedger Auditor" — an AI teammate that follows the attestation rules |
+| Agent | `rovo:agent` | "AgentLedger Auditor", an AI teammate that follows the attestation rules |
 | MCP server | `rovo:mcp` | Exposes the same five tools to Rovo Studio **and** to third-party MCP clients |
-| Reusable skill | `rovo:skill` | `agent-attestation` — packages the rules so any Rovo agent can follow them |
+| Reusable skill | `rovo:skill` | `agent-attestation`, packages the rules so any Rovo agent can follow them |
 | Graph context | Teamwork Graph API | Goals, discussion and linked pull requests behind the work item |
 
 ### The five tools
@@ -73,7 +73,7 @@ broke it. If a Teamwork Graph query is unavailable, it names the query.
 
 ## Identity sources
 
-**Concordium Agent Registry (CIS-8004)** — a badge check over HTTPS that
+**Concordium Agent Registry (CIS-8004)**. A badge check over HTTPS that
 re-fetches the agent card and compares its SHA-256 with the hash committed
 on-chain. Every individual check comes back in the response, so the UI can show
 *why* an identity is valid.
@@ -86,9 +86,9 @@ BotIn's own entry (agent #1190, badge `JyP9X278CKWoNLAFg5kVr`) verifies live:
 the card hash matches the hash committed on chain, the owner matches, the
 extension is conformant.
 
-**ERC-8004 identity registry** — a direct `eth_call` read of the agent record
+**ERC-8004 identity registry**. A direct `eth_call` read of the agent record
 (owner, wallet, active flag, subscription tier) on Base Sepolia. If the registry
-holds no agents, the app says "not registered" instead of failing — an honest
+holds no agents, the app says "not registered" instead of failing. An honest
 negative answer is still an answer.
 
 Both return the same normalised shape, so nothing downstream cares where an
@@ -109,7 +109,7 @@ for the person who triggered it:
 | `jiraWorkItemLinkedExternalPullRequests(id: <ARI>)` | Linked pull requests |
 
 Each query is isolated: one unavailable query (missing scope, schema change) does
-not take down the rest — it is reported instead of hidden.
+not take down the rest. It is reported instead of hidden.
 
 ## Repository layout
 
@@ -127,7 +127,7 @@ agentledger-forge/
 │   └── keccak.js             Dependency-free Keccak-256
 ├── ui/src/main.js            Custom UI panel (esbuild → static/panel/app.js)
 ├── static/panel/             index.html, styles.css, bundled app.js, icon, agent prompt
-├── skills/agent-attestation/ SKILL.md — the reusable Rovo skill
+├── skills/agent-attestation/ SKILL.md. The reusable Rovo skill
 ├── submission/
 │   ├── SUBMISSION.md         The Devpost submission text and demo script
 │   └── PLAN.md               Step-by-step deploy → submit checklist

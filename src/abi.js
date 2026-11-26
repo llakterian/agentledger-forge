@@ -1,7 +1,7 @@
 // Minimal ABI helpers: function selectors, static argument encoding and the
 // decoding of the BotIn registry views the app relies on.
 //
-// Only what the app needs — dynamic (string/bytes/array) return values are
+// Only what the app needs, dynamic (string/bytes/array) return values are
 // decoded by hand for the two structs we read.
 
 import { keccak256Hex, hexToBytes, bytesToHex } from './keccak.js';
@@ -9,7 +9,7 @@ import { keccak256Hex, hexToBytes, bytesToHex } from './keccak.js';
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 export const ZERO_HASH = '0x' + '0'.repeat(64);
 
-/** keccak256 of a signature, first 4 bytes — the function selector. */
+/** keccak256 of a signature, first 4 bytes. The function selector. */
 export function selector(signature) {
   return keccak256Hex(new TextEncoder().encode(signature)).slice(0, 10);
 }
@@ -114,7 +114,7 @@ export function decodeAgentInfo(hex) {
   };
 }
 
-/** keccak of the packed ABI encoding of (uint256 agentId) — used for reference ids. */
+/** keccak of the packed ABI encoding of (uint256 agentId), used for reference ids. */
 export function hashUint(value) {
   return keccak256Hex(hexToBytes('0x' + word(value)));
 }

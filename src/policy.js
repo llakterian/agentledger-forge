@@ -1,4 +1,4 @@
-// Action policy — what an agent is allowed to do without a human in the loop.
+// Action policy, what an agent is allowed to do without a human in the loop.
 //
 // The policy is deliberately small and explicit: a judge (or a reviewer) can
 // read it in one screen and know exactly which actions need a human signature.

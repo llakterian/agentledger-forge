@@ -1,6 +1,6 @@
 ## Inspiration
 
-Teams are starting to hand real work to AI agents — triaging an issue,
+Teams are starting to hand real work to AI agents, triaging an issue,
 transitioning a ticket, approving a service request, triggering a refund. Three
 things are missing in that setup, and all three are ordinary engineering
 problems rather than model problems:
@@ -10,7 +10,7 @@ problems rather than model problems:
 2. **Evidence.** An agent's actions leave no durable trail. "The agent did it" is
    a claim, not a record.
 3. **Authority.** Nothing states which actions an agent may take on its own and
-   which ones need a human signature — so either humans rubber-stamp everything,
+   which ones need a human signature. So either humans rubber-stamp everything,
    or agents are trusted with everything.
 
 AgentLedger fixes all three in Forge: the agent is checked against a registry it
@@ -31,7 +31,7 @@ Demo video: <https://youtu.be/tKIMEUkLjo4> ·
 Live demo of the agent: <https://botin-7ud.pages.dev/>
 
 The app is unlicensed and free, so no billing is involved. The Teamwork Graph
-scopes (`read:graph:*`) are optional — without them the graph queries return
+scopes (`read:graph:*`) are optional, without them the graph queries return
 empty, the app says so, and everything else keeps working.
 
 ## What it does
@@ -41,11 +41,11 @@ Four steps, in order, in code rather than in prompt text.
 **Verify.** The agent reference is checked against the Concordium Agent Registry
 (CIS-8004) over HTTPS. The registry re-fetches the agent card and compares its
 SHA-256 with the hash committed on chain, and returns every individual check it
-performed — so the UI can show *why* an identity is valid rather than just
+performed. So the UI can show *why* an identity is valid rather than just
 asserting that it is. A second source, an ERC-8004 identity registry, is read
 directly over `eth_call` on Base Sepolia. An empty registry is reported as "not
 registered" instead of failing: an honest negative answer is still an answer.
-The shipped demo verifies BotIn agent **#1190** live — card hash matching the
+The shipped demo verifies BotIn agent **#1190** live, card hash matching the
 hash committed on chain, owner matching, extension conformant.
 
 **Evaluate.** A short, readable policy table. `comment`, `triage`, `transition`,
@@ -56,7 +56,7 @@ talked around by an LLM.
 
 **Record.** Every consequential action becomes one attestation. Each attestation
 commits to the hash of the previous one, so editing or deleting an entry breaks
-the chain — and the panel reports exactly which entry broke it instead of
+the chain. And the panel reports exactly which entry broke it instead of
 quietly continuing.
 
 **Context.** Before an agent acts, the app queries Atlassian's Teamwork Graph for
@@ -64,21 +64,21 @@ the work item's connected context: the goals it serves, the recent discussion,
 the linked pull requests. A work item with no linked goal is reported as a
 finding rather than silently ignored. Where a site's graph schema does not
 expose a field (the Teamwork Graph API is in Early Access), the app says so
-explicitly — which cause, and what to do about it — instead of returning a bare
+explicitly, which cause, and what to do about it. Instead of returning a bare
 validation error.
 
 ## How we built it
 
 A Forge app on nodejs24.x, with four modules and one shipped identity:
 
-- **jira:issuePanel** (Custom UI) — the verified identity with every registry
+- **jira:issuePanel** (Custom UI): the verified identity with every registry
   check, the policy table, and the live trail with its chain state.
-- **rovo:agent** — "AgentLedger Auditor". Its prompt enforces the verify →
+- **rovo:agent**: "AgentLedger Auditor". Its prompt enforces the verify →
   policy → context → record order and forbids claiming an action that no tool
   call confirmed.
-- **rovo:mcp** — five tools (policy, verify, context, trail, record), reachable
+- **rovo:mcp**: five tools (policy, verify, context, trail, record), reachable
   in Rovo Studio and from third-party MCP clients.
-- **rovo:skill** — *agent-attestation* packages the same rules so any Rovo agent
+- **rovo:skill**: *agent-attestation* packages the same rules so any Rovo agent
   in any workspace can follow them.
 
 Engineering notes:
@@ -108,11 +108,11 @@ Five, all of the kind that only show up in a real runtime.
    was silently falling through to its default branch. Once the payload was
    unpacked correctly the panel worked on the first try.
 2. **`@forge/kvs` is CommonJS**, so a default import can land on the whole
-   `module.exports` namespace instead of the client — which surfaces at runtime
+   `module.exports` namespace instead of the client, which surfaces at runtime
    as `kvs.get is not a function`. The client is now resolved once, explicitly,
    and the code fails loudly if none of the export shapes match.
 3. **A descriptive check reads like a failure.** The registry returns
-   `badge_embedding: "extension"` — a fact about where the badge lives, not a
+   `badge_embedding: "extension"`. A fact about where the badge lives, not a
    failure. The panel rendered any non-`true` value with a red dot, so a green
    "identity verified" card sat next to a red check. Now a check only turns red
    when it is explicitly `false`, and descriptive values are shown as a note.
@@ -123,8 +123,8 @@ Five, all of the kind that only show up in a real runtime.
    not `.data`.
 5. **`requestJira` takes a route, not a string.** Passing a path fails with
    *"You must create your route using the 'route' export from '@forge/api'"*.
-   The routes are now built with the `route` tagged template — which also
-   rejects `..` and `/` in an issue key — and unit-tested.
+   The routes are now built with the `route` tagged template, which also
+   rejects `..` and `/` in an issue key. And unit-tested.
 
 Each of the last two is now caught by the local validator, so neither can come
 back unnoticed.
@@ -142,7 +142,7 @@ comparison, and the whole set is shown to the user.
 
 The rig refuses to green-wash itself. In the mutation mode of the sibling build
 (fluxharness), deliberately weakening the Critic drops the score to 0.000 and
-exits non-zero — an eval suite that cannot catch its own regressions is
+exits non-zero. An eval suite that cannot catch its own regressions is
 decoration.
 
 ## What we learned
@@ -151,7 +151,7 @@ Forge's module resolver and its Rovo/MCP tools are not the same dispatch
 problem. A `jira:issuePanel` module delivers every `invoke` to the module
 resolver, regardless of the function key, so the panel must route its own
 operations with an explicit `op` and dispatch server-side. A `rovo:mcp` tool, in
-contrast, is called with the tool's manifest inputs — and reading a key the
+contrast, is called with the tool's manifest inputs. And reading a key the
 manifest does not declare produces `undefined` with no error anywhere.
 
 Also: honest reporting is a feature, not a cop-out. "No agents registered in

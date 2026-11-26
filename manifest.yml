@@ -214,7 +214,7 @@ permissions:
     - read:jira-work
     - write:jira-work
     - storage:app
-    # Teamwork Graph — the connected context behind a work item
+    # Teamwork Graph: the connected context behind a work item
     - read:graph:issue:jira
     - read:graph:goal:atlassian
     - read:graph:issue-comment:jira

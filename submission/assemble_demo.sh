@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Codegeist 2026 — assemble the final demo video from the recorded takes.
+# Codegeist 2026: assemble the final demo video from the recorded takes.
 #
 # Usage:
 #   ./assemble_demo.sh [OUTPUT.mp4]
 #
 # The pieces, in order:
 #   1. an opening title card (rendered here, no browser involved)
-#   2. submission/take_*.mp4 — the Jira take: panel, verify, policy, records
-#   3. the Rovo agent take — the AgentLedger Auditor session card on the issue
+#   2. submission/take_*.mp4: the Jira take: panel, verify, policy, records
+#   3. the Rovo agent take: the AgentLedger Auditor session card on the issue
 #   4. a closing title card
 #
 # Everything is trimmed with -ss/-t so the final file stays under the 5-minute
@@ -83,7 +83,7 @@ ffprobe -v error -show_entries format=duration,size \
 
 DUR="$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$OUT" | cut -d. -f1)"
 if [[ "$DUR" -ge 300 ]]; then
-  echo "ERROR: ${DUR}s exceeds the 300s hard limit — trim the takes further"
+  echo "ERROR: ${DUR}s exceeds the 300s hard limit, trim the takes further"
   exit 1
 fi
 echo "==> ${DUR}s (hard limit 300s)"

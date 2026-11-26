@@ -85,8 +85,8 @@ test('the rendered context reports unavailable graph queries', () => {
 });
 
 test("a failure report normalises to available:false with the reason kept", () => {
-  // getIssueContext returns this flat shape when it cannot build the context —
-  // no cloud id, no issue id, a graph call that blew up — so the tool, the agent
+  // getIssueContext returns this flat shape when it cannot build the context:
+  // no cloud id, no issue id, a graph call that blew up. So the tool, the agent
   // and the panel all learn why instead of getting a bare 500.
   const out = normaliseContextResult({
     issueKey: 'KAN-5',
@@ -123,7 +123,7 @@ test("a successful result still normalises to the nested fields", () => {
       comments: [{ content: 'looks good', author: { name: 'Ada' } }],
       pullRequests: [],
     },
-    text: 'Work item: KAN-5 — Ship it',
+    text: 'Work item: KAN-5: Ship it',
   });
   assert.equal(out.available, true);
   assert.equal(out.workItem.key, 'KAN-5');

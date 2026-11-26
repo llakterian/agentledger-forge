@@ -1,4 +1,4 @@
-// How Forge calls a resolver — kept in its own module so it can be unit-tested
+// How Forge calls a resolver, kept in its own module so it can be unit-tested
 // without the Forge runtime.
 //
 // Forge invokes a resolver with a single object:

@@ -1,4 +1,4 @@
-// Teamwork Graph context — what the graph knows about an issue.
+// Teamwork Graph context, what the graph knows about an issue.
 //
 // AgentLedger does not let an agent act in a vacuum: before an action is
 // recorded, the app pulls the connected context from Atlassian's Teamwork
@@ -142,13 +142,13 @@ export async function collectIssueContext({ ari, requestTeamworkGraph, since = '
 
   const unavailable = [];
   // The Teamwork Graph API is in Early Access, so a site that is not enrolled
-  // — or an install where the read:graph:* scopes were not granted — simply has
+  //. Or an install where the read:graph:* scopes were not granted, simply has
   // no `jiraWorkItem` field in its schema. Say that, because "validation error"
   // alone tells the reader nothing.
   const graphMissing = (name, result) => {
     const e = result.error || '';
     if (/FieldUndefined|is undefined/.test(e)) {
-      return `${name}: the site's Teamwork Graph schema does not expose this field — the graph API is in Early Access, so either the site is not enrolled or the read:graph:* scopes were not granted on the install`;
+      return `${name}: the site's Teamwork Graph schema does not expose this field. The graph API is in Early Access, so either the site is not enrolled or the read:graph:* scopes were not granted on the install`;
     }
     return `${name}: ${e}`;
   };
@@ -172,7 +172,7 @@ export async function collectIssueContext({ ari, requestTeamworkGraph, since = '
  * Normalise a context result for the Rovo agent and the MCP client.
  *
  * `getIssueContext` returns a *failure report* when it cannot build the context
- * — no cloud id, no issue id, a graph call that blew up. That report is flat
+ *. No cloud id, no issue id, a graph call that blew up. That report is flat
  * (`available`, `unavailable`, `error`, `step`) while a success nests the same
  * fields under `context`. Tools call this so both shapes produce one shape, and
  * a failure is reported as data rather than surfacing as a 500.
@@ -212,7 +212,7 @@ export function renderContext(context) {
   const lines = [];
   const w = context.workItem;
   if (w) {
-    lines.push(`Work item: ${w.key || context.ari} — ${w.summary || ''}`);
+    lines.push(`Work item: ${w.key || context.ari}, ${w.summary || ''}`);
     if (w.status?.name) lines.push(`Status: ${w.status.name}`);
     if (w.issueType?.name) lines.push(`Type: ${w.issueType.name}`);
     if (w.assignee?.name) lines.push(`Assignee: ${w.assignee.name}`);

@@ -1,4 +1,4 @@
-// AgentLedger — Forge backend.
+// AgentLedger: Forge backend.
 //
 // Handlers are thin: the interesting logic lives in ./verifiers.js (identity),
 // ./policy.js (what an agent may do) and ./attestations.js (the hash-chained
@@ -48,7 +48,7 @@ const forgeFetch = (...args) => fetch(...args);
 /**
  * Normalise a resolver's arguments.
  *
- * Forge calls a resolver with a single object — `{ context, call }` — where
+ * Forge calls a resolver with a single object, `{ context, call }`, where
  * `call.payload` holds what the caller sent and `call.functionKey` names the
  * function. A module resolver (the one a jira:issuePanel module points at)
  * instead receives the module payload directly, with the context as the second
@@ -99,7 +99,7 @@ async function issueSummary(issueKey) {
   }
 }
 
-/** Resolver for the jira:issuePanel module — supplies the panel with context. */
+/** Resolver for the jira:issuePanel module, supplies the panel with context. */
 export async function resolver(first, second) {
   // The panel routes every operation through this resolver with an explicit
   // `op`, because the issue panel's bridge delivers each `invoke` to the
@@ -171,7 +171,7 @@ async function resolveIssueAri(issueKey, cloudId) {
   if (!issueId) throw new Error(`could not resolve the numeric id of ${issueKey}`);
   if (!cloudId) {
     throw new Error(
-      'the cloud id of the site is not known — open the AgentLedger panel on an issue once, or pass the cloudId explicitly',
+      'the cloud id of the site is not known, open the AgentLedger panel on an issue once, or pass the cloudId explicitly',
     );
   }
   return buildIssueAri(cloudId, issueId);
@@ -365,12 +365,12 @@ export async function getTrail(first, second) {
 
 /**
  * Rovo MCP tool: everything an agent needs to act under AgentLedger.
- * The tool is intentionally explicit — an LLM should not have to guess which
+ * The tool is intentionally explicit. An LLM should not have to guess which
  * of these steps to skip.
  */
 export async function agentLedgerTool(first, second) {
   const { payload } = unpack(first, second);
-  // The manifest names the input `operation` — that is what Forge delivers.
+  // The manifest names the input `operation`. That is what Forge delivers.
   const action = toolOperation(payload);
   if (action === 'policy') {
     return { policy: policyTable(), note: 'Actions marked requiresHuman need a human approval attestation.' };
@@ -424,7 +424,7 @@ export async function agentLedgerTool(first, second) {
     return normaliseContextResult(result);
   }
   throw new Error(
-    `unknown tool action "${action}" — use policy, verify, record, trail or context ` +
+    `unknown tool action "${action}", use policy, verify, record, trail or context ` +
       `(received keys: ${Object.keys(payload).join(', ') || 'none'})`
   );
 }

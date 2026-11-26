@@ -1,14 +1,14 @@
-// Agent identity verification — two independent sources.
+// Agent identity verification. Two independent sources.
 //
 // The point of AgentLedger is that an agent cannot claim an identity; it has to
 // be checked against a registry that the agent does not control. Two sources
 // are supported and both are read-only:
 //
-//  1. Concordium Agent Registry (CIS-8004) — a badge check over HTTPS that
+//  1. Concordium Agent Registry (CIS-8004). A badge check over HTTPS that
 //     re-fetches the agent card and compares its SHA-256 with the hash
 //     committed on-chain. Response includes every individual check, so the UI
 //     can show *why* an identity is (or is not) valid.
-//  2. BotIn ERC-8004 identity registry on Base Sepolia — a direct eth_call
+//  2. BotIn ERC-8004 identity registry on Base Sepolia. A direct eth_call
 //     read of the agent record (owner, wallet, active flag, subscription).
 //
 // Both return the same normalised shape, so the rest of the app does not care
@@ -21,7 +21,7 @@ import {
 
 export const CONCORDIUM_BADGE_CHECK = 'https://agent-registry-mcp.concordium.com/v1/badge-check/';
 export const BASE_SEPOLIA_RPC = 'https://sepolia.base.org';
-/** BotIn contracts on Base Sepolia (84532) — the proxies, not the implementations. */
+/** BotIn contracts on Base Sepolia (84532). The proxies, not the implementations. */
 export const BOTIN_IDENTITY_REGISTRY = '0x12b9e8776d5fc35cc65aeee148c5a84c2cf996b0';
 export const BOTIN_IDENTITY_IMPLEMENTATION = '0x835fe55d67c332cc4ac6f77cd18b4c294b7f1c4a';
 export const BOTIN_REPUTATION_REGISTRY = '0x50627a5ce19c20d9a3af4c3ae06f662dd26fa801';

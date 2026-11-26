@@ -9,48 +9,48 @@ allowed-tools: agentledger-policy agentledger-verify agentledger-context agentle
 Every consequential action an AI agent takes on a work item gets one
 attestation. An attestation answers three questions and nothing else:
 
-1. **Who** acted — the agent's registry identity, verified against a registry
+1. **Who** acted: the agent's registry identity, verified against a registry
    the agent does not control.
-2. **Was it allowed** — the policy decision for that action kind.
-3. **What happened** — a hash-chained record that cannot be edited or removed
+2. **Was it allowed**: the policy decision for that action kind.
+3. **What happened**: a hash-chained record that cannot be edited or removed
    without breaking the chain.
 
 ## The order of operations
 
 Always follow this order. Skipping a step means the trail is not trustworthy.
 
-1. `agentledger-policy` — read the policy. Actions marked as human-gated
+1. `agentledger-policy`: read the policy. Actions marked as human-gated
    (`approve`, `refund`, `close`) are never performed by an agent on its own.
-2. `agentledger-verify` — verify the agent's identity. If the result is not
+2. `agentledger-verify`: verify the agent's identity. If the result is not
    valid, stop and report the failing checks verbatim. Do not retry with a
    different reference to force a pass.
-3. `agentledger-context` — collect the Teamwork Graph context for the work
+3. `agentledger-context`: collect the Teamwork Graph context for the work
    item: the goals it serves, the recent discussion, the linked pull requests.
    Act in light of that context, not in isolation.
-4. `agentledger-record` — record the action. It is appended to the issue's
+4. `agentledger-record`: record the action. It is appended to the issue's
    hash-chained trail with the verdict the policy produced.
-5. `agentledger-trail` — when asked what happened, answer from the trail, not
+5. `agentledger-trail`: when asked what happened, answer from the trail, not
    from your own memory of the conversation.
 
 ## Recording an action
 
 Call `agentledger-record` with:
 
-- `issueKey` — the work item the action applies to.
-- `actionKind` — one of `comment`, `triage`, `transition`, `assign`, `create`,
+- `issueKey`: the work item the action applies to.
+- `actionKind`: one of `comment`, `triage`, `transition`, `assign`, `create`,
   `approve`, `refund`, `close`.
-- `agentRef` — the agent's registry reference (a CIS-8004 token address such as
+- `agentRef`: the agent's registry reference (a CIS-8004 token address such as
   `JyP9X278CKWoNLAFg5kVr`, or a numeric id for an ERC-8004 registry).
-- `humanApproved` — `true` only when a named human reviewer already approved
+- `humanApproved`: `true` only when a named human reviewer already approved
   this exact action. Never set it to `true` on your own judgement.
 
 The record returns the verdict: `allowed`, `approved`, `flagged` or `denied`.
 
-- `allowed` — the agent may proceed.
-- `approved` — a human approved it and the policy allows it.
-- `flagged` — the action is human-gated. Say so and ask a human to approve;
+- `allowed`: the agent may proceed.
+- `approved`: a human approved it and the policy allows it.
+- `flagged`: the action is human-gated. Say so and ask a human to approve;
   do not perform the action.
-- `denied` — the identity is missing or invalid, or the action is unknown.
+- `denied`: the identity is missing or invalid, or the action is unknown.
   Report the reason and stop.
 
 ## Edge cases

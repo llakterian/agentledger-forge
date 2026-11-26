@@ -148,7 +148,7 @@ for (const action of modules.action || []) {
 
 // ── action inputs vs. what the backend reads ──────────────────────────────────
 // Forge hands the backend exactly the inputs the manifest declares. If the
-// backend reads a different key, the tool silently receives undefined — the
+// backend reads a different key, the tool silently receives undefined. The
 // agent gets "unknown tool action \"undefined\"" instead of an answer.
 //
 // That is exactly what happened: the manifest declared the input as
@@ -173,7 +173,7 @@ for (const action of modules.action || []) {
   for (const fn of actionFunctions) {
     const body = functionBody(handlerName(fn));
     if (!body) {
-      notes.push(`could not find the body of function "${fn}" — the action inputs were not checked`);
+      notes.push(`could not find the body of function "${fn}". The action inputs were not checked`);
       continue;
     }
     for (const m of body.matchAll(/payload\??\.([A-Za-z_$][\w$]*)/g)) readKeys.add(m[1]);
@@ -194,7 +194,7 @@ for (const action of modules.action || []) {
   for (const [name, actionKeys] of declared) {
     if (!readKeys.has(name)) {
       fail(
-        `action input "${name}" (declared by ${actionKeys.join(', ')}) is never read by the backend — ` +
+        `action input "${name}" (declared by ${actionKeys.join(', ')}) is never read by the backend, ` +
           `the tool would receive undefined. Read payload.${name} (or payload?.${name}) in the handler.`
       );
     }
@@ -291,7 +291,7 @@ for (const host of usedHosts) {
   if (!allowed.has(host)) fail(`the backend calls ${host} but it is not in permissions.external.fetch.backend`);
 }
 if (![...allowed].some((h) => h.endsWith('atlassian.net'))) {
-  fail('the backend resolves the site cloud id via <site>.atlassian.net/_edge/tenant_info — allow it in permissions.external.fetch.backend');
+  fail('the backend resolves the site cloud id via <site>.atlassian.net/_edge/tenant_info, allow it in permissions.external.fetch.backend');
 }
 
 if (!manifest.permissions?.scopes?.includes('storage:app')) {
@@ -302,18 +302,18 @@ if (!manifest.permissions?.scopes?.includes('storage:app')) {
 // @forge/api v6 dropped the `.get()/.post()` helpers on asUser()/asApp(): a Jira
 // read is `api.asUser().requestJira(path)` and the result is read with `.json()`.
 // A leftover `.get()` only fails at runtime, as "out.asUser(...).get is not a
-// function" — which the agent then reports as a bare 500.
+// function", which the agent then reports as a bare 500.
 {
   const stale = [...indexSource.matchAll(/asUser\(\)\??\.(get|post|put|delete|patch)\s*\(/g)].map((m) => m[1]);
   if (stale.length) {
     fail(
-      `src/index.js calls api.asUser().${stale[0]}(...) — @forge/api v6 has no such method. ` +
+      `src/index.js calls api.asUser().${stale[0]}(...), @forge/api v6 has no such method. ` +
         'Use api.asUser().requestJira(path) and read the result with .json().'
     );
   }
   const readsData = /requestJira\([^)]*\)[^;]*\.data/.test(indexSource);
   if (readsData) {
-    fail('a requestJira() response is read with .json(), not .data — .data is not on it');
+    fail('a requestJira() response is read with .json(), not .data, .data is not on it');
   }
   if (/requestJira\s*\(/.test(indexSource)) {
     // The routes are built with the `route` tagged template, which has to be
@@ -327,7 +327,7 @@ if (!manifest.permissions?.scopes?.includes('storage:app')) {
     } catch { /* the files are checked elsewhere */ }
     if (!routeImported) {
       fail(
-        'src/index.js calls requestJira() but no src module imports `route` from @forge/api — ' +
+        'src/index.js calls requestJira() but no src module imports `route` from @forge/api, ' +
           'requestJira needs a route built with the `route` tagged template, and a plain ' +
           'string fails at runtime'
       );
@@ -345,7 +345,7 @@ if (panelSource) {
   const backendOps = new Set([...indexSource.matchAll(/op\s*===\s*'([^']+)'/g)].map((m) => m[1]));
 
   if (!frontendOps.size) {
-    notes.push('ui/src/main.js has no call() operations — the panel dispatcher could not be checked');
+    notes.push('ui/src/main.js has no call() operations. The panel dispatcher could not be checked');
   }
   for (const op of frontendOps) {
     if (!backendOps.has(op)) {

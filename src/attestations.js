@@ -2,7 +2,7 @@
 //
 // Every consequential agent action on an issue gets one attestation. Each
 // attestation commits to the previous one (hash chain), so the trail cannot be
-// edited or removed without breaking the chain — and the app shows the chain
+// edited or removed without breaking the chain. And the app shows the chain
 // state instead of pretending the trail is authoritative.
 //
 // The chain lives in Forge storage (entity store). The pure functions below
